@@ -1,26 +1,22 @@
 import { mediapireService } from "../services/mediapire/mediapire";
 
 class ApiGateway {
-  private _config: null | MediapireManageConfig = null;
-
   private get apiHost(): string {
-    if (this._config == null) {
-      this.getConfig();
-    }
+    const config = this.getConfig();
 
     // here we assume config is set since if nothing is in localstorage an error would be thrown before getting here
-    const { scheme, host, port } = this._config as MediapireManageConfig;
+    const { scheme, host, port } = config;
     return `${scheme}://${host}:${port}`;
   }
 
-  private getConfig(): void {
+  private getConfig(): MediapireManageConfig {
     const config = mediapireService.getManagerConfig();
 
     if (config === null) {
       throw Error("No mediapire config found");
     }
 
-    this._config = config;
+    return config;
   }
 
   private async request(url: string, options: RequestInit): Promise<Response> {

@@ -1,18 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { mediaService } from "../../services/media/media-service";
-import { Box, Button, Group, Skeleton } from "@mantine/core";
+import {
+  Box,
+  Button,
+  Group,
+  Skeleton,
+  ActionIcon,
+  Tooltip,
+} from "@mantine/core";
 import { MediaTable } from "../../components/media-table/media-table";
 import { MediaTypeEnum } from "../../types/media-type.enum";
 import { notifications } from "@mantine/notifications";
-import { IconAlertCircle } from "@tabler/icons-react";
+import { IconAlertCircle, IconRefresh } from "@tabler/icons-react";
 
-import { saveAs } from "file-saver";
+import { useNavigate } from "react-router-dom";
+import { routeDownloadStatus, routeError } from "../../utils/constants";
 
 export function LibraryPage() {
   const [library, setLibrary] = useState<MediaItemWithNodeId[]>([]);
   const [init, setInit] = useState(true);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [downloading, setDownloading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSelectedItem = (itemId: string) => {
     if (selectedItems.includes(itemId)) {
@@ -22,19 +31,16 @@ export function LibraryPage() {
     }
   };
 
-  const downloadSelectedItems = () => {
-    // for now only support smaller batch downloads since backend implementation is not optimal
-    if (selectedItems.length > 10) {
-      notifications.show({
-        title: "Error",
-        message: "Cannot download more than 10 files at once.",
-        autoClose: 5000,
-        color: "red",
-        icon: <IconAlertCircle></IconAlertCircle>,
-      });
-      return;
+  const fetchLibrary = async () => {
+    try {
+      const media = await mediaService.getMedia();
+      setLibrary(media);
+    } catch (err: any) {
+      navigate(routeError);
     }
+  };
 
+  const downloadSelectedItems = () => {
     const payload = selectedItems.reduce(
       (acc: DownloadMediaRequest, itemId) => {
         const item = library.find((item) => item.id === itemId);
@@ -53,13 +59,14 @@ export function LibraryPage() {
     mediaService
       .downloadMedia(payload)
       .then((res) => {
-        saveAs(res, "mediapire-download.zip");
-        setDownloading(false);
+        navigate(routeDownloadStatus.replace(":id", res.id), {
+          state: { id: res.id },
+        });
       })
       .catch(() => {
         notifications.show({
           title: "Error",
-          message: "Failed to download file(s).",
+          message: "Failed to start download.",
           autoClose: 5000,
           color: "red",
           icon: <IconAlertCircle></IconAlertCircle>,
@@ -68,11 +75,13 @@ export function LibraryPage() {
   };
 
   useEffect(() => {
-    mediaService.getMedia().then((media) => {
-      setLibrary(media);
+    const fetchMedia = async () => {
+      await fetchLibrary();
 
       setInit(false);
-    });
+    };
+
+    fetchMedia();
   }, []);
 
   if (init) {
@@ -90,6 +99,15 @@ export function LibraryPage() {
   return (
     <div>
       <Group position="right" mt="md">
+        <Tooltip label="Refresh Library">
+          <ActionIcon
+            variant="outline"
+            color="blue"
+            onClick={() => fetchLibrary()}
+          >
+            <IconRefresh></IconRefresh>
+          </ActionIcon>
+        </Tooltip>
         <Button
           loading={downloading}
           disabled={!selectedItems.length}
