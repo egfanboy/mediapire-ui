@@ -3,6 +3,8 @@ import api from "../../api/api";
 interface MediaService {
   getMedia(): Promise<any[]>;
   downloadMedia(body: DownloadMediaRequest): Promise<any>;
+  getDownload(downloadId: string): Promise<any>;
+  getDownloadContent(downloadId: string): Promise<any>;
 }
 
 type GetMediaResponse = { [key: string]: MediaItem[] };
@@ -32,10 +34,19 @@ const getMedia = (): Promise<any[]> => {
 };
 
 const downloadMedia = (body: DownloadMediaRequest): Promise<any> => {
-  return api.post("/api/v1/media/download", { body }).then((r) => r.blob());
+  return api.post("/api/v1/media/download", { body }).then((r) => r.json());
+};
+
+const getDownloadContent = (downloadId: string): Promise<any> =>
+  api.get(`/api/v1/transfers/${downloadId}/download`).then((r) => r.blob());
+
+const getDownload = (downloadId: string): Promise<any> => {
+  return api.get(`/api/v1/transfers/${downloadId}`).then((r) => r.json());
 };
 
 export const mediaService: MediaService = {
   getMedia,
   downloadMedia,
+  getDownload,
+  getDownloadContent,
 };
