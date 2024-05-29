@@ -36,7 +36,7 @@ export function MediaTable(props: TableProps) {
 
   return (
     <ScrollArea
-      h={2000}
+      h={0.8 * window.innerHeight}
       onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
     >
       <Table>
