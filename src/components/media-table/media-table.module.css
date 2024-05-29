@@ -1,6 +1,5 @@
 .tableHeader {
   background-color: var(--mantine-color-white);
-  /* background-color: var(--mantine-color-body); */
   position: sticky;
   top: 0;
   /* Need to provide z-index to be above the checkboxes */
