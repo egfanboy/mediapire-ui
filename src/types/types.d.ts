@@ -28,4 +28,5 @@ interface Mp3MediaItem extends MediaItemWithNodeId {
   };
 }
 
-type DownloadMediaRequest = { nodeId: string; mediaId: string }[];
+type MediaItemMapping = { nodeId: string; mediaId: string };
+type DownloadMediaRequest = MediaItemMapping[];

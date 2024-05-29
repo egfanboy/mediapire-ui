@@ -8,19 +8,27 @@ import {
   ActionIcon,
   Tooltip,
 } from "@mantine/core";
-import { MediaTable } from "../../components/media-table/media-table";
+import {
+  MediaTable,
+  TableSelectionAction,
+} from "../../components/media-table/media-table";
 import { MediaTypeEnum } from "../../types/media-type.enum";
 import { notifications } from "@mantine/notifications";
 import { IconAlertCircle, IconRefresh } from "@tabler/icons-react";
 
 import { useNavigate } from "react-router-dom";
 import { routeDownloadStatus, routeError } from "../../utils/constants";
+import {
+  GenericConfirmationModal,
+  actionType,
+} from "../../components/generic-confirmation-modal/generic-confirmation-modal";
 
 export function LibraryPage() {
   const [library, setLibrary] = useState<MediaItemWithNodeId[]>([]);
   const [init, setInit] = useState(true);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [downloading, setDownloading] = useState(false);
+  const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const navigate = useNavigate();
 
   const handleSelectedItem = (itemId: string) => {
@@ -40,24 +48,25 @@ export function LibraryPage() {
     }
   };
 
+  const getSelectedItemsPayload = () => {
+    return selectedItems.reduce((acc: DownloadMediaRequest, itemId) => {
+      const item = library.find((item) => item.id === itemId);
+
+      if (item) {
+        acc = [...acc, { nodeId: item.nodeId, mediaId: item.id }];
+      }
+
+      return acc;
+    }, []);
+  };
+
   const downloadSelectedItems = () => {
-    const payload = selectedItems.reduce(
-      (acc: DownloadMediaRequest, itemId) => {
-        const item = library.find((item) => item.id === itemId);
-
-        if (item) {
-          acc = [...acc, { nodeId: item.nodeId, mediaId: item.id }];
-        }
-
-        return acc;
-      },
-      []
-    );
+    const items = getSelectedItemsPayload();
 
     setDownloading(true);
 
     mediaService
-      .downloadMedia(payload)
+      .downloadMedia(items)
       .then((res) => {
         navigate(routeDownloadStatus.replace(":id", res.id), {
           state: { id: res.id },
@@ -74,6 +83,41 @@ export function LibraryPage() {
       });
   };
 
+  const deleteSelectedItems = () => {
+    const items = getSelectedItemsPayload();
+
+    setShowConfirmDeleteModal(false);
+    mediaService
+      .deleteMedia(items)
+      .then(() => {
+        // items should be deleted, remove them from state
+        setSelectedItems([]);
+        // refresh library since items should be removed
+        fetchLibrary();
+      })
+      .catch(() => {
+        notifications.show({
+          title: "Error",
+          message: "Failed to start media delete.",
+          autoClose: 5000,
+          color: "red",
+          icon: <IconAlertCircle></IconAlertCircle>,
+        });
+      });
+  };
+
+  function handleSelectionAction(action: TableSelectionAction): void {
+    switch (action) {
+      case TableSelectionAction.Download:
+        downloadSelectedItems();
+        break;
+      case TableSelectionAction.Delete:
+        setShowConfirmDeleteModal(true);
+        break;
+      default:
+        break;
+    }
+  }
   useEffect(() => {
     const fetchMedia = async () => {
       await fetchLibrary();
@@ -98,6 +142,19 @@ export function LibraryPage() {
 
   return (
     <div>
+      <GenericConfirmationModal
+        show={showConfirmDeleteModal}
+        onClose={() => setShowConfirmDeleteModal(false)}
+        action={{
+          label: "Delete Selection",
+          type: actionType.destructive,
+          action: () => deleteSelectedItems(),
+        }}
+      >
+        Would you like to delete these {selectedItems.length} item(s)? This may
+        take some time and you might need to refresh your library to see these
+        files removed.
+      </GenericConfirmationModal>
       <Group position="right" mt="md">
         <Tooltip label="Refresh Library">
           <ActionIcon
@@ -108,19 +165,14 @@ export function LibraryPage() {
             <IconRefresh></IconRefresh>
           </ActionIcon>
         </Tooltip>
-        <Button
-          loading={downloading}
-          disabled={!selectedItems.length}
-          onClick={() => downloadSelectedItems()}
-        >
-          Download selection
-        </Button>
       </Group>
 
       <MediaTable
         items={library}
         mediaType={MediaTypeEnum.Mp3}
         onItemSelected={handleSelectedItem}
+        onSelectionAction={handleSelectionAction}
+        hasSelectedItems={!!selectedItems.length}
       ></MediaTable>
     </div>
   );

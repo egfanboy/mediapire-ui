@@ -70,7 +70,7 @@ export function App() {
         },
       })}
     >
-      <MantineProvider>
+      <MantineProvider withCSSVariables>
         <Notifications />
         {init && (
           <>

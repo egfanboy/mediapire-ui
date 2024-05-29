@@ -5,6 +5,7 @@ interface MediaService {
   downloadMedia(body: DownloadMediaRequest): Promise<any>;
   getDownload(downloadId: string): Promise<any>;
   getDownloadContent(downloadId: string): Promise<any>;
+  deleteMedia(body: MediaItemMapping[]): Promise<any>;
 }
 
 type GetMediaResponse = { [key: string]: MediaItem[] };
@@ -44,9 +45,13 @@ const getDownload = (downloadId: string): Promise<any> => {
   return api.get(`/api/v1/transfers/${downloadId}`).then((r) => r.json());
 };
 
+const deleteMedia = (body: MediaItemMapping[]) =>
+  api.delete("/api/v1/media", { body }).then((r) => r.json());
+
 export const mediaService: MediaService = {
   getMedia,
   downloadMedia,
   getDownload,
   getDownloadContent,
+  deleteMedia,
 };
