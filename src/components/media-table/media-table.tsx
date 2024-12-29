@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActionIcon, Checkbox, Menu, ScrollArea, Table } from "@mantine/core";
 
 import {
@@ -13,6 +13,7 @@ import classes from "./media-table.module.css";
 export enum TableSelectionAction {
   Download,
   Delete,
+  Play,
 }
 
 interface TableProps {
@@ -20,24 +21,46 @@ interface TableProps {
   mediaType: MediaTypeEnum;
   onItemSelected: (itemId: string) => void;
   onSelectionAction: (action: TableSelectionAction) => void;
-  hasSelectedItems: boolean;
+  selectedItems: string[];
+  showSelectAll?: boolean;
+  onSelectAll?: () => void;
 }
 
 export function MediaTable(props: TableProps) {
   const [scrolled, setScrolled] = useState(false);
+  const [scrollHeight, setScrollHeight] = useState(100);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      const parentRect =
+        scrollRef.current.parentElement?.getBoundingClientRect();
+
+      if (parentRect) {
+        setScrollHeight(0.75 * parentRect?.height);
+      }
+    }
+  }, [scrollRef.current]);
+
   const rows = props.items.map((item) => (
     <tr key={item.id}>
       <td>
-        <Checkbox onChange={() => props.onItemSelected(item.id)}></Checkbox>
+        <Checkbox
+          checked={!!props.selectedItems.includes(item.id)}
+          onChange={() => props.onItemSelected(item.id)}
+        ></Checkbox>
       </td>
-      {elementMapping[props.mediaType](item)}
+      {elementMapping[props.mediaType](item).map((el) => el)}
+      <td></td>
     </tr>
   ));
 
   return (
     <ScrollArea
-      h={0.8 * window.innerHeight}
+      ref={scrollRef}
+      h={scrollHeight}
       onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
+      type="never"
     >
       <Table>
         <thead
@@ -47,16 +70,21 @@ export function MediaTable(props: TableProps) {
           ].join(" ")}
         >
           <tr>
-            {/* empty td needed to have proper spacing due to the checkbox field */}
-            <td></td>
+            <th>
+              {props.showSelectAll && (
+                <Checkbox
+                  checked={props.items.length === props.selectedItems.length}
+                  onChange={() => props.onSelectAll && props.onSelectAll()}
+                ></Checkbox>
+              )}
+            </th>
             {headerMapping[props.mediaType]()}
-            <td>
+            <th>
               <Menu>
                 <Menu.Target>
                   <ActionIcon
                     variant="transparent"
-                    color="blue"
-                    disabled={!props.hasSelectedItems}
+                    disabled={!props.selectedItems.length}
                   >
                     <IconDots></IconDots>
                   </ActionIcon>
@@ -77,9 +105,16 @@ export function MediaTable(props: TableProps) {
                   >
                     Delete Selection
                   </Menu.Item>
+                  <Menu.Item
+                    onClick={() =>
+                      props.onSelectionAction(TableSelectionAction.Play)
+                    }
+                  >
+                    Play Selection
+                  </Menu.Item>
                 </Menu.Dropdown>
               </Menu>
-            </td>
+            </th>
           </tr>
         </thead>
         <tbody>{rows}</tbody>

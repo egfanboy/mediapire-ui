@@ -18,13 +18,13 @@ interface MediaItemWithNodeId extends MediaItem {
 
 interface Mp3MediaItem extends MediaItemWithNodeId {
   metadata: {
-    Album: string;
-    Artist: string;
-    Genre: string;
-    Length: number;
-    Title: string;
-    TrackIndex: number;
-    TrackOf: number;
+    album: string;
+    artist: string;
+    genre: string;
+    length: number;
+    title: string;
+    trackIndex: number;
+    trackOf: number;
   };
 }
 
