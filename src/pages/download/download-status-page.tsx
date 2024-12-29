@@ -39,7 +39,6 @@ export function DownloadStatusPage() {
   }, [params.id]);
 
   useEffect(() => {
-    console.log({ download });
     // we are not polling yet but the download is not completed, instantiate polling
     if (download && !poller && transientStatuses.includes(download.status)) {
       setPoller(setTimeout(() => fetchDownload(download.id), pollingInterval));

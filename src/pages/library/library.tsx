@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { mediaService } from "../../services/media/media-service";
-import {
-  Box,
-  Button,
-  Group,
-  Skeleton,
-  ActionIcon,
-  Tooltip,
-} from "@mantine/core";
+import { Box, Group, Skeleton, ActionIcon, Tooltip } from "@mantine/core";
 import {
   MediaTable,
   TableSelectionAction,
@@ -23,12 +16,17 @@ import {
   actionType,
 } from "../../components/generic-confirmation-modal/generic-confirmation-modal";
 
+import mediaPlayerEvents, {
+  MediaPlayerEventType,
+} from "../../events/media-player/media-player.events";
+
 export function LibraryPage() {
   const [library, setLibrary] = useState<MediaItemWithNodeId[]>([]);
   const [init, setInit] = useState(true);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [downloading, setDownloading] = useState(false);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+
   const navigate = useNavigate();
 
   const handleSelectedItem = (itemId: string) => {
@@ -36,6 +34,14 @@ export function LibraryPage() {
       setSelectedItems(selectedItems.filter((item) => item !== itemId));
     } else {
       setSelectedItems([...selectedItems, itemId]);
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (library.length === selectedItems.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(library.map((item) => item.id));
     }
   };
 
@@ -114,10 +120,26 @@ export function LibraryPage() {
       case TableSelectionAction.Delete:
         setShowConfirmDeleteModal(true);
         break;
+      case TableSelectionAction.Play:
+        mediaPlayerEvents.dispatchEvent({
+          type: MediaPlayerEventType.SetMediaLibrary,
+          data: {
+            media: selectedItems
+              .map((itemId) => library.find((item) => item.id === itemId))
+              // remove potential undefined
+              .filter((item) => item),
+            autoplay: true,
+          },
+        });
+
+        // clear selection
+        setSelectedItems([]);
+        break;
       default:
         break;
     }
   }
+
   useEffect(() => {
     const fetchMedia = async () => {
       await fetchLibrary();
@@ -141,7 +163,7 @@ export function LibraryPage() {
   }
 
   return (
-    <div>
+    <>
       <GenericConfirmationModal
         show={showConfirmDeleteModal}
         onClose={() => setShowConfirmDeleteModal(false)}
@@ -155,13 +177,10 @@ export function LibraryPage() {
         take some time and you might need to refresh your library to see these
         files removed.
       </GenericConfirmationModal>
+
       <Group position="right" mt="md">
         <Tooltip label="Refresh Library">
-          <ActionIcon
-            variant="outline"
-            color="blue"
-            onClick={() => fetchLibrary()}
-          >
+          <ActionIcon variant="outline" color="" onClick={() => fetchLibrary()}>
             <IconRefresh></IconRefresh>
           </ActionIcon>
         </Tooltip>
@@ -172,8 +191,10 @@ export function LibraryPage() {
         mediaType={MediaTypeEnum.Mp3}
         onItemSelected={handleSelectedItem}
         onSelectionAction={handleSelectionAction}
-        hasSelectedItems={!!selectedItems.length}
+        selectedItems={selectedItems}
+        showSelectAll
+        onSelectAll={handleSelectAll}
       ></MediaTable>
-    </div>
+    </>
   );
 }

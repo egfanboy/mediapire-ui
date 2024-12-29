@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Header, AppShell, Skeleton, Title } from "@mantine/core";
+import { Header, AppShell, Skeleton, Title, Footer } from "@mantine/core";
 
 import { Notifications } from "@mantine/notifications";
 import { MantineProvider } from "@mantine/core";
@@ -15,6 +15,8 @@ import {
 import { LibraryPage } from "./pages/library/library";
 import { ErrorPage } from "./pages/error/error";
 import { DownloadStatusPage } from "./pages/download/download-status-page";
+import playbackManager from "./components/media-player/playback-manager/playback-manager";
+import { MediaPlayer } from "./components/media-player/media-player";
 
 export function App() {
   const [init, setInit] = useState(true);
@@ -35,6 +37,8 @@ export function App() {
   useEffect(() => {
     const config = mediapireService.getManagerConfig();
 
+    playbackManager.init();
+
     if (config === null) {
       navigate(routeSetup);
     }
@@ -45,32 +49,44 @@ export function App() {
     }
 
     setInit(false);
+
+    return () => playbackManager.destroy();
   }, []);
 
   return (
-    <AppShell
-      padding="md"
-      header={
-        <Header height={60} p="xs">
-          <Title
-            order={1}
-            onClick={() => handleHomeNavigate()}
-            style={{ cursor: "pointer", userSelect: "none" }}
-          >
-            Mediapire
-          </Title>
-        </Header>
-      }
-      styles={(theme) => ({
-        main: {
-          backgroundColor:
-            theme.colorScheme === "dark"
-              ? theme.colors.dark[8]
-              : theme.colors.gray[0],
-        },
-      })}
+    <MantineProvider
+      theme={{
+        primaryColor: "violet",
+      }}
+      withCSSVariables
     >
-      <MantineProvider withCSSVariables>
+      <AppShell
+        padding="md"
+        header={
+          <Header height={60} p="xs">
+            <Title
+              order={1}
+              onClick={() => handleHomeNavigate()}
+              style={{ cursor: "pointer", userSelect: "none" }}
+            >
+              Mediapire
+            </Title>
+          </Header>
+        }
+        footer={
+          <Footer height={75}>
+            <MediaPlayer />
+          </Footer>
+        }
+        styles={(theme) => ({
+          main: {
+            backgroundColor:
+              theme.colorScheme === "dark"
+                ? theme.colors.dark[8]
+                : theme.colors.gray[0],
+          },
+        })}
+      >
         <Notifications />
         {init && (
           <>
@@ -85,7 +101,7 @@ export function App() {
           <Route path={routeError} element={<ErrorPage />} />
           <Route path={routeDownloadStatus} element={<DownloadStatusPage />} />
         </Routes>
-      </MantineProvider>
-    </AppShell>
+      </AppShell>
+    </MantineProvider>
   );
 }

@@ -2,7 +2,7 @@ import React from "react";
 import { MediaTypeEnum } from "../../../types/media-type.enum";
 
 type MediaTypeElementFactoryMapping = {
-  [key: string]: (item: MediaItemWithNodeId) => JSX.Element;
+  [key: string]: (item: MediaItemWithNodeId) => JSX.Element[];
 };
 type MediaTypeHeaderFactoryMapping = {
   [key: string]: () => JSX.Element;
@@ -11,13 +11,11 @@ type MediaTypeHeaderFactoryMapping = {
 const getMp3Element = (item: MediaItemWithNodeId) => {
   const mp3Item = item as Mp3MediaItem;
 
-  return (
-    <>
-      <td>{mp3Item.name}</td>
-      <td>{mp3Item.metadata.Album}</td>
-      <td>{mp3Item.metadata.Artist}</td>
-    </>
-  );
+  return [
+    <td key={`mp3item-name-${mp3Item.id}`}>{mp3Item.name}</td>,
+    <td key={`mp3item-album-${mp3Item.id}`}>{mp3Item.metadata.album}</td>,
+    <td key={`mp3item-artist-${mp3Item.id}`}>{mp3Item.metadata.artist}</td>,
+  ];
 };
 
 const getMp3Headers = () => (
