@@ -74,7 +74,7 @@ export function App() {
           </Header>
         }
         footer={
-          <Footer height={75}>
+          <Footer height={100}>
             <MediaPlayer />
           </Footer>
         }

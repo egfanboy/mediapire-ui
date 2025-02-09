@@ -83,6 +83,7 @@ export const AudioControlElement = () => {
         audioRef.current.pause();
       }
 
+      // TODO: Refactor to move to central management location
       const loadSong = async () => {
         const content = await mediaService.streamMedia(
           currentTrack.id,
@@ -103,11 +104,12 @@ export const AudioControlElement = () => {
           audioRef.current.src = URL.createObjectURL(content);
           audioRef.current.play();
           audioRef.current.currentTime = 0;
+
+          mediaPlayerStore.setState((state) => ({
+            ...state,
+            currentTrack: { ...state.currentTrack, thumbnail },
+          }));
         }
-        // return {
-        //   songContent: URL.createObjectURL(content),
-        //   songImage: imageSrc,
-        // };
       };
       loadSong();
     }
