@@ -7,7 +7,13 @@ import { shuffleArray } from "./utils/shuffle-array";
 // time tolerance in seconds when handling the previous media event
 const PREVIOUS_TIME_TOLERANCE = 3;
 
+// Localstorage defaults therefore represent a stringified version of their value
+const VOLUME_DEFAULT = "75";
+const MUTED_DEFAULT = "false";
+
 const localStoragePlaybackStateKey = "mediapire_media_playback_state";
+const localStorageVolumeStateKey = "mediapire_playback_volume_state";
+const localStorageVolumeMutedKey = "mediapire_playback_volume_muted";
 
 class _playbackManager {
   constructor() {
@@ -19,6 +25,8 @@ class _playbackManager {
     this.toggleRepeatMode = this.toggleRepeatMode.bind(this);
     this.toggleShuffle = this.toggleShuffle.bind(this);
     this.handlePlaybackEnded = this.handlePlaybackEnded.bind(this);
+    this.handleVolumeChange = this.handleVolumeChange.bind(this);
+    this.handleMute = this.handleMute.bind(this);
 
     //  mapping of event type to callback, used to dynamically subscribe and unsubscribe
     this.eventHandlerMapping = {
@@ -30,6 +38,8 @@ class _playbackManager {
       [MediaPlayerEventType.ToggleRepeatMode]: this.toggleRepeatMode,
       [MediaPlayerEventType.ToggleShuffle]: this.toggleShuffle,
       [MediaPlayerEventType.PlaybackEnded]: this.handlePlaybackEnded,
+      [MediaPlayerEventType.VolumeChange]: this.handleVolumeChange,
+      [MediaPlayerEventType.Mute]: this.handleMute,
     };
   }
 
@@ -78,7 +88,7 @@ class _playbackManager {
         repeatMode: newRepeatMode as any,
       }));
 
-      this.updateLocalStorage();
+      this.updatePlaybackLocalStorage();
     }
   }
 
@@ -202,7 +212,7 @@ class _playbackManager {
       shuffling: !currentState.shuffling,
     }));
 
-    this.updateLocalStorage();
+    this.updatePlaybackLocalStorage();
   }
 
   shuffleMedia(shuffle: boolean) {
@@ -222,7 +232,7 @@ class _playbackManager {
     }
   }
 
-  updateLocalStorage() {
+  updatePlaybackLocalStorage() {
     const currentState = mediaPlayerStore.getSnapshot();
 
     localStorage.setItem(
@@ -234,16 +244,42 @@ class _playbackManager {
     );
   }
 
+  updateVolumeLocalStorage() {
+    const currentState = mediaPlayerStore.getSnapshot();
+    localStorage.setItem(
+      localStorageVolumeStateKey,
+      JSON.stringify(currentState.volume)
+    );
+  }
+
+  updateVolumeMutedLocalStorage() {
+    const currentState = mediaPlayerStore.getSnapshot();
+    localStorage.setItem(
+      localStorageVolumeMutedKey,
+      JSON.stringify(currentState.muted)
+    );
+  }
+
   readFromLocalStorage() {
-    const value = JSON.parse(
+    const playbackValue = JSON.parse(
       localStorage.getItem(localStoragePlaybackStateKey) ||
         '{"shuffling":false, "repeatMode": "none"}'
     );
 
+    const mutedValue =
+      localStorage.getItem(localStorageVolumeMutedKey) || MUTED_DEFAULT;
+
+    const muted = mutedValue === "true";
+
+    const volumeValue =
+      localStorage.getItem(localStorageVolumeStateKey) || VOLUME_DEFAULT;
+
     mediaPlayerStore.setState((state) => ({
       ...state,
-      shuffling: value.shuffling,
-      repeatMode: value.repeatMode,
+      shuffling: playbackValue.shuffling,
+      repeatMode: playbackValue.repeatMode,
+      muted: muted,
+      volume: muted ? 0 : +volumeValue,
     }));
   }
 
@@ -280,6 +316,47 @@ class _playbackManager {
 
     // no special scenario just play next song
     this.handleNext();
+  }
+
+  handleVolumeChange(event: { volume?: number; finalChange?: boolean }) {
+    if (event.volume) {
+      mediaPlayerStore.setState((state) => ({
+        ...state,
+        volume: event.volume || 0,
+      }));
+    }
+
+    /*
+     * if it is the final change set the value in localStorage, supports adjusting the volume as the user drags
+     * casts to boolean since final change can be undefined
+     */
+    if (!!event.finalChange) {
+      this.updateVolumeLocalStorage();
+    }
+  }
+
+  handleMute() {
+    const currentState = mediaPlayerStore.getSnapshot();
+
+    if (currentState.muted) {
+      // get user volume from localstorage
+      const volume =
+        localStorage.getItem(localStorageVolumeStateKey) || VOLUME_DEFAULT;
+
+      mediaPlayerStore.setState((state) => ({
+        ...state,
+        muted: false,
+        volume: +volume,
+      }));
+    } else {
+      mediaPlayerStore.setState((state) => ({
+        ...state,
+        muted: true,
+        volume: 0,
+      }));
+    }
+
+    this.updateVolumeMutedLocalStorage();
   }
 }
 

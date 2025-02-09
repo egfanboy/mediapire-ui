@@ -8,6 +8,9 @@ import {
   IconVolume2,
   IconVolume3,
 } from "@tabler/icons-react";
+import mediaPlayerEvents, {
+  MediaPlayerEventType,
+} from "../../../events/media-player/media-player.events";
 
 const mediapireVolumeKey = "mediapire_media_volume";
 const mediapireVolumeMutedKey = "mediapire_media_volume_muted";
@@ -22,56 +25,28 @@ export const VolumeControl = () => {
   const volume = useMediaStore((state) => state.volume);
   const muted = useMediaStore((state) => state.muted);
 
-  useEffect(() => {
-    const userVolume = localStorage.getItem(mediapireVolumeKey);
-
-    // TODO: Move this to the event system to have all playback state handling in a centralized localtion
-    if (userVolume) {
-      mediaPlayerStore.setState((state) => ({ ...state, volume: +userVolume }));
-    }
-
-    const userMuted = localStorage.getItem(mediapireVolumeKey);
-
-    if (userMuted && userMuted === "true") {
-      mediaPlayerStore.setState((state) => ({
-        ...state,
-        volume: 0,
-        muted: true,
-      }));
-    }
-  }, []);
-
   const handleChangeEnd = (value: number) => {
     setDragging(false);
 
-    localStorage.setItem(mediapireVolumeKey, value.toString());
+    mediaPlayerEvents.dispatchEvent({
+      type: MediaPlayerEventType.VolumeChange,
+      data: { volume: value, finalChange: true },
+    });
   };
 
   const handleDrag = (v: number) => {
     setDragging(true);
 
-    mediaPlayerStore.setState((state) => ({ ...state, volume: v }));
+    mediaPlayerEvents.dispatchEvent({
+      type: MediaPlayerEventType.VolumeChange,
+      data: { volume: v },
+    });
   };
 
   const handleMute = () => {
-    if (muted) {
-      localStorage.setItem(mediapireVolumeMutedKey, "false");
-      const userVolume = localStorage.getItem(mediapireVolumeKey);
-      if (userVolume) {
-        mediaPlayerStore.setState((state) => ({
-          ...state,
-          volume: +userVolume,
-          muted: false,
-        }));
-      }
-    } else {
-      localStorage.setItem(mediapireVolumeMutedKey, "true");
-      mediaPlayerStore.setState((state) => ({
-        ...state,
-        volume: 0,
-        muted: true,
-      }));
-    }
+    mediaPlayerEvents.dispatchEvent({
+      type: MediaPlayerEventType.Mute,
+    });
   };
 
   const getVolumeIcon = () => {
@@ -96,7 +71,7 @@ export const VolumeControl = () => {
       <Tooltip label={muted ? "Unmute" : "Mute"}>
         <ActionIcon
           size="xs"
-          color={volumeIconHovered ? "" : "gray.4"}
+          color={isActive ? "" : "gray.4"}
           onClick={handleMute}
         >
           <VolumeIcon
