@@ -1,0 +1,33 @@
+:root {
+  --gap: 20px;
+  .container {
+    overflow: hidden;
+
+    position: relative;
+    display: flex;
+    gap: var(--gap);
+  }
+
+  .scrollingContainer {
+    display: inline-block;
+    white-space: nowrap;
+    animation: scroll linear infinite;
+  }
+
+  .staticEllipsis {
+    /* set the max width to 100% to enforce ellipsis if the child content is text */
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}
+
+@keyframes scroll {
+  from {
+    transform: translateX(calc(0 + var(--gap)));
+  }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
