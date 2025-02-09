@@ -7,6 +7,8 @@ export enum MediaPlayerEventType {
   ToggleRepeatMode,
   SetMediaLibrary,
   PlaybackEnded,
+  Mute,
+  VolumeChange,
 }
 
 export type MediaPlayerEvent = {
