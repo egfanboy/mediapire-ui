@@ -3,7 +3,7 @@ import styles from "./download-status-page.module.css";
 
 import { useNavigate, useParams } from "react-router-dom";
 import { mediaService } from "../../services/media/media-service";
-import { routeError, routeLibrary } from "../../utils/constants";
+import { routeError } from "../../utils/constants";
 import { Container, Grid, Text, Button, Skeleton, Loader } from "@mantine/core";
 import { DownloadInfo } from "./download-status.types";
 import { CompleteDownload } from "./complete-download/complete-download";
@@ -80,8 +80,8 @@ export function DownloadStatusPage() {
                     successfully due to: {download.failureReason}
                   </Text>
 
-                  <Button onClick={() => navigate(routeLibrary)}>
-                    Back To Home
+                  <Button onClick={() => window.history.back()}>
+                    Back To Media
                   </Button>
                 </Container>
               )}

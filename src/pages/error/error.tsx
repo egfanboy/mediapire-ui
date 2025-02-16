@@ -4,7 +4,7 @@ import { Title, Text, Button, Container, Group } from "@mantine/core";
 import classes from "./error-page.module.css";
 import { mediapireService } from "../../services/mediapire/mediapire";
 import { useNavigate } from "react-router-dom";
-import { routeLibrary, routeSetup } from "../../utils/constants";
+import { libraryBasePath, routeSetup } from "../../utils/constants";
 
 export function ErrorPage() {
   const config = mediapireService.getManagerConfig();
@@ -40,7 +40,7 @@ export function ErrorPage() {
           ta="center"
           size="md"
           onClick={() => {
-            navigate(routeLibrary);
+            navigate(libraryBasePath);
           }}
         >
           To Library
