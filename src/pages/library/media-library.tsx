@@ -5,11 +5,10 @@ import {
   MediaTable,
   TableSelectionAction,
 } from "../../components/media-table/media-table";
-import { MediaTypeEnum } from "../../types/media-type.enum";
 import { notifications } from "@mantine/notifications";
 import { IconAlertCircle, IconRefresh } from "@tabler/icons-react";
 
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { routeDownloadStatus, routeError } from "../../utils/constants";
 import {
   GenericConfirmationModal,
@@ -24,6 +23,7 @@ import { mediaStore } from "../../stores/media/media-store";
 
 export function MediaLibrary() {
   const library = useMediaStore((s) => s.media);
+  const location = useLocation();
   const [init, setInit] = useState(true);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [downloading, setDownloading] = useState(false);
@@ -49,7 +49,7 @@ export function MediaLibrary() {
 
   const fetchLibrary = async () => {
     try {
-      const media = await mediaService.getMedia();
+      const media = await mediaService.getMedia(location.state?.mediaType);
       mediaStore.setState((s) => ({ ...s, media }));
     } catch (err: any) {
       navigate(routeError);
@@ -190,7 +190,7 @@ export function MediaLibrary() {
 
       <MediaTable
         items={library}
-        mediaType={MediaTypeEnum.Mp3}
+        mediaType={location.state?.mediaType}
         onItemSelected={handleSelectedItem}
         onSelectionAction={handleSelectionAction}
         selectedItems={selectedItems}

@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { ActionIcon, Checkbox, Menu, ScrollArea, Table } from "@mantine/core";
 
 import {
-  elementMapping,
-  headerMapping,
+  getElementFactory,
+  getHeaderFactory,
 } from "./media-types/media-type-factory";
 import { MediaTypeEnum } from "../../types/media-type.enum";
 import { IconDots } from "@tabler/icons-react";
@@ -50,7 +50,7 @@ export function MediaTable(props: TableProps) {
           onChange={() => props.onItemSelected(item.id)}
         ></Checkbox>
       </td>
-      {elementMapping[props.mediaType](item).map((el) => el)}
+      {getElementFactory(props.mediaType)(item).map((el) => el)}
       <td></td>
     </tr>
   ));
@@ -78,7 +78,7 @@ export function MediaTable(props: TableProps) {
                 ></Checkbox>
               )}
             </th>
-            {headerMapping[props.mediaType]()}
+            {getHeaderFactory(props.mediaType)()}
             <th>
               <Menu>
                 <Menu.Target>
