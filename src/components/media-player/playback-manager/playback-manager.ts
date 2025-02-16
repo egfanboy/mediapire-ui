@@ -106,7 +106,17 @@ class _playbackManager {
       const isLast = currentMediaIndex === targetList.length - 1;
 
       const nextTrack = targetList[isLast ? 0 : currentMediaIndex + 1];
-      if (nextTrack) {
+
+      // TODO: remove once a better way to handle thumbnails is found
+      // if the track doesn't change just set the playback time to 0
+      if (this.currentMediaId === nextTrack.id) {
+        mediaPlayerStore.setState((state) => ({
+          ...state,
+          playbackTime: 0,
+        }));
+      }
+
+      if (this.currentMediaId !== nextTrack.id) {
         this.currentMediaId = nextTrack.id;
         mediaPlayerStore.setState((state) => ({
           ...state,

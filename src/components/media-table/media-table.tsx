@@ -70,10 +70,13 @@ export function MediaTable(props: TableProps) {
           ].join(" ")}
         >
           <tr>
-            <th>
+            <th className={classes.checkboxHeader}>
               {props.showSelectAll && (
                 <Checkbox
-                  checked={props.items.length === props.selectedItems.length}
+                  checked={
+                    !!props.items.length &&
+                    props.items.length === props.selectedItems.length
+                  }
                   onChange={() => props.onSelectAll && props.onSelectAll()}
                 ></Checkbox>
               )}

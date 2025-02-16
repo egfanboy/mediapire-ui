@@ -1,25 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { mediaService } from "../../services/media/media-service";
-import { Box, Group, Skeleton, ActionIcon, Tooltip } from "@mantine/core";
+import { mediaService } from "../../../services/media/media-service";
+import { Box, Group, Skeleton, ActionIcon, Tooltip, Flex } from "@mantine/core";
 import {
   MediaTable,
   TableSelectionAction,
-} from "../../components/media-table/media-table";
+} from "../../../components/media-table/media-table";
 import { notifications } from "@mantine/notifications";
 import { IconAlertCircle, IconRefresh } from "@tabler/icons-react";
 
 import { useLocation, useNavigate } from "react-router-dom";
-import { routeDownloadStatus, routeError } from "../../utils/constants";
+import { routeDownloadStatus, routeError } from "../../../utils/constants";
 import {
   GenericConfirmationModal,
   actionType,
-} from "../../components/generic-confirmation-modal/generic-confirmation-modal";
+} from "../../../components/generic-confirmation-modal/generic-confirmation-modal";
 
 import mediaPlayerEvents, {
   MediaPlayerEventType,
-} from "../../events/media-player/media-player.events";
-import { useMediaStore } from "../../stores/media/use-media-store";
-import { mediaStore } from "../../stores/media/media-store";
+} from "../../../events/media-player/media-player.events";
+import { useMediaStore } from "../../../stores/media/use-media-store";
+import { mediaStore } from "../../../stores/media/media-store";
+import { debounce } from "../../../utils/debounce";
+
+import styles from "./media-library.module.css";
+import { TextSearch } from "../../../components/text-search/text-search";
+import { filterItem } from "./filter-item";
 
 export function MediaLibrary() {
   const library = useMediaStore((s) => s.media);
@@ -28,6 +33,8 @@ export function MediaLibrary() {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [downloading, setDownloading] = useState(false);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+  const [filteredItems, setFilteredItems] = useState<MediaItemWithNodeId[]>([]);
+  const [filter, setFilter] = useState("");
 
   const navigate = useNavigate();
 
@@ -39,11 +46,19 @@ export function MediaLibrary() {
     }
   };
 
+  useEffect(() => {
+    filterLibrary();
+  }, [library]);
+
+  useEffect(() => {
+    filterLibrary();
+  }, [filter]);
+
   const handleSelectAll = () => {
-    if (library.length === selectedItems.length) {
+    if (filteredItems.length === selectedItems.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(library.map((item) => item.id));
+      setSelectedItems(filteredItems.map((item) => item.id));
     }
   };
 
@@ -55,6 +70,16 @@ export function MediaLibrary() {
       navigate(routeError);
     }
   };
+
+  const filterLibrary = () => {
+    if (!filter) {
+      setFilteredItems(library);
+    } else {
+      setFilteredItems(library.filter(filterItem(filter)));
+    }
+  };
+
+  const handleSearch = debounce(setFilter, 200);
 
   const getSelectedItemsPayload = () => {
     return selectedItems.reduce((acc: DownloadMediaRequest, itemId) => {
@@ -180,20 +205,33 @@ export function MediaLibrary() {
         files removed.
       </GenericConfirmationModal>
 
-      <Group position="right" mt="md">
-        <Tooltip label="Refresh Library">
-          <ActionIcon variant="outline" color="" onClick={() => fetchLibrary()}>
-            <IconRefresh></IconRefresh>
-          </ActionIcon>
-        </Tooltip>
-      </Group>
+      <Flex direction="row">
+        <TextSearch
+          className={styles.searchBox}
+          onSearch={handleSearch}
+          clearable
+        />
+        <Group position="right" mt="md" style={{ marginLeft: "auto" }}>
+          <Tooltip label="Refresh Library">
+            <ActionIcon
+              variant="outline"
+              color=""
+              onClick={() => fetchLibrary()}
+            >
+              <IconRefresh></IconRefresh>
+            </ActionIcon>
+          </Tooltip>
+        </Group>
+      </Flex>
 
       <MediaTable
-        items={library}
+        items={filteredItems}
         mediaType={location.state?.mediaType}
         onItemSelected={handleSelectedItem}
         onSelectionAction={handleSelectionAction}
-        selectedItems={selectedItems}
+        selectedItems={selectedItems.filter((si) =>
+          filteredItems.map((item) => item.id).includes(si)
+        )}
         showSelectAll
         onSelectAll={handleSelectAll}
       ></MediaTable>
