@@ -32,7 +32,7 @@ class ApiGateway {
       };
     }
 
-    return fetch(`${this.apiHost}${url}`, {
+    return fetch(this.buildUrl(url), {
       ...options,
       headers: { ...baseHeaders, ...options.headers },
     })
@@ -64,6 +64,10 @@ class ApiGateway {
 
   put(url: string, options = {}) {
     return this.request(url, { ...options, method: "PUT" });
+  }
+
+  buildUrl(url: string): string {
+    return `${this.apiHost}${url}`;
   }
 }
 

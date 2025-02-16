@@ -1,8 +1,5 @@
 import React, { useCallback, useEffect, useRef } from "react";
 
-import * as musicMetadata from "music-metadata-browser";
-import { Button } from "@mantine/core";
-
 import { useMediaStore } from "../../state-machine/use-media-store";
 import { mediaPlayerStore } from "../../state-machine/media-player-store";
 import mediaPlayerEvents, {
@@ -83,35 +80,14 @@ export const AudioControlElement = () => {
         audioRef.current.pause();
       }
 
-      // TODO: Refactor to move to central management location
-      const loadSong = async () => {
-        const content = await mediaService.streamMedia(
+      if (audioRef.current) {
+        audioRef.current.src = mediaService.streamMediaStatic(
           currentTrack.id,
           currentTrack.nodeId
         );
-        const metadata = await musicMetadata.parseBlob(content);
-
-        const thumbnail = (metadata.common.picture || []).filter((p: any) =>
-          p.description.toLowerCase().includes("Album cover".toLowerCase())
-        )[0];
-        let imageSrc = "";
-        if (thumbnail) {
-          imageSrc = URL.createObjectURL(
-            new Blob([thumbnail.data], { type: thumbnail.format })
-          );
-        }
-        if (audioRef.current) {
-          audioRef.current.src = URL.createObjectURL(content);
-          audioRef.current.play();
-          audioRef.current.currentTime = 0;
-
-          mediaPlayerStore.setState((state) => ({
-            ...state,
-            currentTrack: { ...state.currentTrack, thumbnail },
-          }));
-        }
-      };
-      loadSong();
+        audioRef.current.play();
+        audioRef.current.currentTime = 0;
+      }
     }
   }, [currentTrack?.id]);
 

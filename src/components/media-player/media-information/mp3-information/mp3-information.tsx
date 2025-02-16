@@ -1,30 +1,34 @@
 import React from "react";
-import { Flex, Skeleton } from "@mantine/core";
+import { Flex, Image, ThemeIcon } from "@mantine/core";
 
 import styles from "./mp3-information.module.css";
 import { InfiniteScroll } from "../../../infinite-scroll/infinite-scroll";
+import { mediaService } from "../../../../services/media/media-service";
+import { IconMusic } from "@tabler/icons-react";
 interface mp3InformationProps {
   currentTrack: { [key: string]: any };
 }
 
+const IMAGE_DIMENSION = 75;
+
 export const Mp3Information = (props: mp3InformationProps) => {
   return (
     <Flex className={styles.container}>
-      {props.currentTrack.thumbnail ? (
-        <img
-          className={[
-            styles.albumImage,
-            props.currentTrack.thumbnail ? styles.albumImagePopulated : "",
-          ].join(" ")}
-          src={URL.createObjectURL(
-            new Blob([props.currentTrack.thumbnail.data], {
-              type: props.currentTrack.thumbnail.format,
-            })
-          )}
-        ></img>
-      ) : (
-        <Skeleton height={75} width={75} />
-      )}
+      <Image
+        className={styles.albumImagePopulated}
+        width={IMAGE_DIMENSION}
+        height={IMAGE_DIMENSION}
+        src={mediaService.getMediaArtStatic(
+          props.currentTrack.id,
+          props.currentTrack.nodeId
+        )}
+        withPlaceholder
+        placeholder={
+          <ThemeIcon variant="light" w={IMAGE_DIMENSION} h={IMAGE_DIMENSION}>
+            <IconMusic />
+          </ThemeIcon>
+        }
+      ></Image>
 
       <Flex direction="column" className={styles.albumPropertiesContainer}>
         <InfiniteScroll onlyScrollOnHover onlyScrollForOverflow>
