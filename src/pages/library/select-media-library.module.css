@@ -1,0 +1,12 @@
+:root {
+  --card-size: 10rem;
+
+  .selectMediaLibraryCard {
+    min-width: var(--card-size);
+    min-height: var(--card-size);
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}

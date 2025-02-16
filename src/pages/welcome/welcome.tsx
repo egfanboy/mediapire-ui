@@ -3,7 +3,7 @@ import { Button, Center, Container, Group, Stepper, Text } from "@mantine/core";
 import { useState } from "react";
 import { MediapireForm } from "../../components/mediapire-form/mediapire-form";
 import { useNavigate } from "react-router-dom";
-import { routeLibrary } from "../../utils/constants";
+import { libraryBasePath } from "../../utils/constants";
 
 export function WelcomePage() {
   const [active, setActive] = useState(0);
@@ -13,7 +13,7 @@ export function WelcomePage() {
   const nextStep = () => setActive((current) => current + 1);
 
   const viewLibrary = () => {
-    navigate(routeLibrary);
+    navigate(libraryBasePath);
   };
 
   return (

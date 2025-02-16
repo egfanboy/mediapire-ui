@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Header, AppShell, Skeleton, Title, Footer } from "@mantine/core";
+import { Header, AppShell, Skeleton, Title } from "@mantine/core";
 
 import { Notifications } from "@mantine/notifications";
 import { MantineProvider } from "@mantine/core";
@@ -7,16 +7,17 @@ import { WelcomePage } from "./pages/welcome/welcome";
 import { mediapireService } from "./services/mediapire/mediapire";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import {
+  libraryBasePath,
   routeDownloadStatus,
   routeError,
-  routeLibrary,
+  routeMediaLibrary,
   routeSetup,
 } from "./utils/constants";
 import { LibraryPage } from "./pages/library/library";
 import { ErrorPage } from "./pages/error/error";
 import { DownloadStatusPage } from "./pages/download/download-status-page";
 import playbackManager from "./components/media-player/playback-manager/playback-manager";
-import { MediaPlayer } from "./components/media-player/media-player";
+import { Footer } from "./components/footer/footer";
 
 export function App() {
   const [init, setInit] = useState(true);
@@ -31,7 +32,7 @@ export function App() {
       navigate(routeSetup);
     }
 
-    navigate(routeLibrary);
+    navigate(libraryBasePath);
   };
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export function App() {
 
     // if no route, just reroute to the library
     if (location.pathname === "/") {
-      navigate(routeLibrary);
+      navigate(libraryBasePath);
     }
 
     setInit(false);
@@ -73,11 +74,7 @@ export function App() {
             </Title>
           </Header>
         }
-        footer={
-          <Footer height={100}>
-            <MediaPlayer />
-          </Footer>
-        }
+        footer={<Footer />}
         styles={(theme) => ({
           main: {
             backgroundColor:
@@ -97,7 +94,7 @@ export function App() {
         )}
         <Routes>
           <Route path={routeSetup} element={<WelcomePage />} />
-          <Route index path={routeLibrary} element={<LibraryPage />} />
+          <Route index path={routeMediaLibrary} element={<LibraryPage />} />
           <Route path={routeError} element={<ErrorPage />} />
           <Route path={routeDownloadStatus} element={<DownloadStatusPage />} />
         </Routes>
