@@ -1,6 +1,6 @@
 :root {
   .container {
-    min-width: 350px;
+    width: 20rem;
   }
 
   .albumImage {
@@ -18,8 +18,8 @@
   }
 
   .albumPropertiesContainer {
+    overflow: hidden;
     flex-grow: 1;
-    max-width: 20rem;
     padding-left: 1rem;
     box-sizing: border-box;
   }

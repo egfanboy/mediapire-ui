@@ -46,8 +46,10 @@ export const MediaControls = () => {
     }
   };
 
+  const shouldPlay = () => paused || currentTrack === null;
+
   const getMainActionButtonIcon = () => {
-    if (paused || currentTrack === null) {
+    if (shouldPlay()) {
       return IconPlayerPlayFilled;
     } else {
       return IconPlayerPauseFilled;
@@ -56,7 +58,9 @@ export const MediaControls = () => {
 
   const handleMainActionClick = () => {
     mediaPlayerEvents.dispatchEvent({
-      type: paused ? MediaPlayerEventType.Play : MediaPlayerEventType.Pause,
+      type: shouldPlay()
+        ? MediaPlayerEventType.Play
+        : MediaPlayerEventType.Pause,
     });
   };
 
