@@ -1,6 +1,7 @@
 import mediaPlayerEvents, {
   MediaPlayerEventType,
 } from "../../../events/media-player/media-player.events";
+import { mediaStore } from "../../../stores/media/media-store";
 import { mediaPlayerStore } from "../state-machine/media-player-store";
 import { shuffleArray } from "./utils/shuffle-array";
 
@@ -162,6 +163,16 @@ class _playbackManager {
         ...state,
         paused: false,
       }));
+    } else {
+      /*
+       ** gets the current media from the state and starts it.
+       ** this assumes the user presses play without picking any media
+       */
+
+      const mediaState = mediaStore.getSnapshot();
+      if (mediaState.media.length) {
+        this.setMedia({ media: mediaState.media, autoplay: true });
+      }
     }
   }
 

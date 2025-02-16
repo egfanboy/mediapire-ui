@@ -19,9 +19,11 @@ import {
 import mediaPlayerEvents, {
   MediaPlayerEventType,
 } from "../../events/media-player/media-player.events";
+import { useMediaStore } from "../../stores/media/use-media-store";
+import { mediaStore } from "../../stores/media/media-store";
 
 export function MediaLibrary() {
-  const [library, setLibrary] = useState<MediaItemWithNodeId[]>([]);
+  const library = useMediaStore((s) => s.media);
   const [init, setInit] = useState(true);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [downloading, setDownloading] = useState(false);
@@ -48,7 +50,7 @@ export function MediaLibrary() {
   const fetchLibrary = async () => {
     try {
       const media = await mediaService.getMedia();
-      setLibrary(media);
+      mediaStore.setState((s) => ({ ...s, media }));
     } catch (err: any) {
       navigate(routeError);
     }
