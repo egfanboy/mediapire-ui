@@ -1,7 +1,7 @@
 import api from "../../api/api";
 
 interface MediaService {
-  getMedia(): Promise<any[]>;
+  getMedia(mediaType?: string): Promise<any[]>;
   downloadMedia(body: DownloadMediaRequest): Promise<any>;
   getDownload(downloadId: string): Promise<any>;
   getDownloadContent(downloadId: string): Promise<any>;
@@ -11,10 +11,15 @@ interface MediaService {
 
 type GetMediaResponse = { [key: string]: MediaItem[] };
 
-const getMedia = (): Promise<any[]> => {
+const getMedia = (mediaType?: string): Promise<any[]> => {
+  let url = "/api/v1/media";
+
+  if (mediaType) {
+    url = `${url}?mediaType=${mediaType}`;
+  }
   return (
     api
-      .get("/api/v1/media")
+      .get(url)
       .then((r) => r.json())
       // flatten media to a list
       .then((media: GetMediaResponse): MediaItemWithNodeId[] => {
