@@ -1,0 +1,48 @@
+:root {
+  .container {
+    --hover-color: "";
+
+    width: 10rem;
+    min-width: fit-content;
+
+    box-sizing: border-box;
+    padding: 1rem 0.75rem;
+    &:hover {
+      background-color: var(--hover-color);
+      cursor: pointer;
+    }
+  }
+
+  .containerSelected {
+    --selected-color: "";
+    background-color: var(--selected-color);
+  }
+
+  .container[aria-disabled="true"] {
+    /* pointer-events: none; */
+    opacity: 0.5;
+    background-color: lightgray;
+  }
+
+  .iconContainer {
+    position: relative;
+  }
+
+  .icon {
+    margin-left: auto;
+  }
+
+  .badge {
+    --badge-color: green;
+
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--badge-color);
+    font-weight: bold;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+}

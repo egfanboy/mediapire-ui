@@ -10,14 +10,16 @@ import {
   libraryBasePath,
   routeDownloadStatus,
   routeError,
+  routeManage,
   routeMediaLibrary,
   routeSetup,
 } from "./utils/constants";
 import { LibraryPage } from "./pages/library/library";
 import { ErrorPage } from "./pages/error/error";
 import { DownloadStatusPage } from "./pages/download/download-status-page";
-import playbackManager from "./components/media-player/playback-manager/playback-manager";
 import { Footer } from "./components/footer/footer";
+import { LeftNav } from "./components/left-nav/left-nav";
+import { ManagePage } from "./pages/manage/manager";
 
 export function App() {
   const [init, setInit] = useState(true);
@@ -38,8 +40,6 @@ export function App() {
   useEffect(() => {
     const config = mediapireService.getManagerConfig();
 
-    playbackManager.init();
-
     if (config === null) {
       navigate(routeSetup);
     }
@@ -50,8 +50,6 @@ export function App() {
     }
 
     setInit(false);
-
-    return () => playbackManager.destroy();
   }, []);
 
   return (
@@ -74,6 +72,7 @@ export function App() {
             </Title>
           </Header>
         }
+        navbar={<LeftNav />}
         footer={<Footer />}
         styles={(theme) => ({
           main: {
@@ -96,6 +95,7 @@ export function App() {
           <Route path={routeSetup} element={<WelcomePage />} />
           <Route index path={routeMediaLibrary} element={<LibraryPage />} />
           <Route path={routeError} element={<ErrorPage />} />
+          <Route path={routeManage} element={<ManagePage />} />
           <Route path={routeDownloadStatus} element={<DownloadStatusPage />} />
         </Routes>
       </AppShell>

@@ -80,14 +80,21 @@ export const AudioControlElement = () => {
         audioRef.current.pause();
       }
 
-      if (audioRef.current) {
-        audioRef.current.src = mediaService.streamMediaStatic(
-          currentTrack.id,
-          currentTrack.nodeId
-        );
-        audioRef.current.play();
-        audioRef.current.currentTime = 0;
-      }
+      const load = async () => {
+        if (audioRef.current) {
+          // Need to get blob and create a dynamic URL since backend does not support ranging
+          const audioBytes = await mediaService.streamMedia(
+            currentTrack.id,
+            currentTrack.nodeId
+          );
+
+          audioRef.current.src = URL.createObjectURL(audioBytes);
+          audioRef.current.play();
+          audioRef.current.currentTime = 0;
+        }
+      };
+
+      load();
     }
   }, [currentTrack?.id]);
 

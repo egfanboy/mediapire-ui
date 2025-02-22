@@ -65,6 +65,10 @@ class _playbackManager {
       // @ts-ignore
       mediaPlayerEvents.unsubscribe(key as any, this.eventHandlerMapping[key]);
     }
+
+    this.media = [];
+    this.shuffledMedia = [];
+    this.currentMediaId = "";
   }
 
   toggleRepeatMode() {

@@ -1,0 +1,10 @@
+:root {
+  .descriptionText {
+    margin-left: 4px;
+  }
+
+  .selectTableContainer {
+    max-height: 30rem;
+    overflow-y: scroll;
+  }
+}
