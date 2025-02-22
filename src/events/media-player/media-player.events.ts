@@ -24,14 +24,14 @@ class _mediaPlayerEvents {
 
   subscribe(type: MediaPlayerEventType, callback: eventListener) {
     if (this.eventListeners[type]) {
-      this.eventListeners[type].add(callback);
+      this.eventListeners[type]?.add(callback);
     } else {
       this.eventListeners[type] = new Set<eventListener>([callback]);
     }
   }
 
   unsubscribe(type: MediaPlayerEventType, callback: eventListener) {
-    this.eventListeners[type].delete(callback);
+    this.eventListeners[type]?.delete(callback);
   }
 
   dispatchEvent(event: MediaPlayerEvent) {

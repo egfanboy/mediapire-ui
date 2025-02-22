@@ -11,6 +11,7 @@ interface MediapireService {
   saveManagerConfig: (config: MediapireManageConfig) => void;
   deleteManagerConfig: () => void;
   getSettings: () => Promise<MediapireSettings>;
+  getNodes: () => Promise<MediaHostNode[]>;
 }
 
 const getManagerConfig = (): MediapireManageConfig | null => {
@@ -33,9 +34,14 @@ const getSettings = (): Promise<MediapireSettings> => {
   return api.get("/api/v1/settings").then((r) => r.json());
 };
 
+const getNodes = (): Promise<MediaHostNode[]> => {
+  return api.get("/api/v1/nodes").then((r) => r.json());
+};
+
 export const mediapireService: MediapireService = {
   getManagerConfig,
   saveManagerConfig,
   deleteManagerConfig,
   getSettings,
+  getNodes,
 };

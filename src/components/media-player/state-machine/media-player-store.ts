@@ -29,10 +29,13 @@ const createStore = (initialState: MediaPlayerState) => {
     };
   };
 
+  const reset = () => setState(() => initialState);
+
   return {
     setState,
     getSnapshot,
     subscribe,
+    reset,
   };
 };
 

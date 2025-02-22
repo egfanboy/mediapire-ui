@@ -25,6 +25,8 @@ import { debounce } from "../../../utils/debounce";
 import styles from "./media-library.module.css";
 import { TextSearch } from "../../../components/text-search/text-search";
 import { filterItem } from "./filter-item";
+import playbackManager from "../../../components/media-player/playback-manager/playback-manager";
+import { mediaPlayerStore } from "../../../components/media-player/state-machine/media-player-store";
 
 export function MediaLibrary() {
   const library = useMediaStore((s) => s.media);
@@ -37,6 +39,23 @@ export function MediaLibrary() {
   const [filter, setFilter] = useState("");
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchMedia = async () => {
+      await fetchLibrary();
+      playbackManager.init();
+      setInit(false);
+    };
+
+    fetchMedia();
+
+    return () => {
+      playbackManager.destroy();
+      // TODO: rethink how these stores work and reset
+      mediaStore.setState((s) => ({ ...s, media: [] }));
+      mediaPlayerStore.reset();
+    };
+  }, []);
 
   const handleSelectedItem = (itemId: string) => {
     if (selectedItems.includes(itemId)) {
@@ -166,16 +185,6 @@ export function MediaLibrary() {
         break;
     }
   }
-
-  useEffect(() => {
-    const fetchMedia = async () => {
-      await fetchLibrary();
-
-      setInit(false);
-    };
-
-    fetchMedia();
-  }, []);
 
   if (init) {
     return (
