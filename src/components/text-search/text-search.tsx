@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { ActionIcon, TextInput, useMantineTheme } from "@mantine/core";
-import { IconX } from "@tabler/icons-react";
+import React, { useState } from 'react';
+import { IconX } from '@tabler/icons-react';
+import { CloseButton, TextInput, useMantineTheme } from '@mantine/core';
 
 interface textSearchProps {
   className?: string;
@@ -8,12 +8,8 @@ interface textSearchProps {
   clearable?: boolean;
 }
 
-export const TextSearch = ({
-  onSearch,
-  className,
-  clearable = false,
-}: textSearchProps) => {
-  const [value, setValue] = useState<string>("");
+export const TextSearch = ({ onSearch, className, clearable = false }: textSearchProps) => {
+  const [value, setValue] = useState<string>('');
 
   const theme = useMantineTheme();
 
@@ -29,13 +25,7 @@ export const TextSearch = ({
       value={value}
       placeholder="search"
       onChange={(event) => handleChange(event.currentTarget.value)}
-      rightSection={
-        clearable && (
-          <ActionIcon onClick={() => handleChange("")}>
-            <IconX color={theme.colors.gray[4]}></IconX>
-          </ActionIcon>
-        )
-      }
+      rightSection={clearable && <CloseButton onClick={() => handleChange('')}></CloseButton>}
     />
   );
 };

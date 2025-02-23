@@ -1,14 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
-import { ActionIcon, Checkbox, Menu, ScrollArea, Table } from "@mantine/core";
-
-import {
-  getElementFactory,
-  getHeaderFactory,
-} from "./media-types/media-type-factory";
-import { MediaTypeEnum } from "../../types/media-type.enum";
-import { IconDots } from "@tabler/icons-react";
-
-import classes from "./media-table.module.css";
+import React, { useEffect, useRef, useState } from 'react';
+import { IconDots } from '@tabler/icons-react';
+import { ActionIcon, Checkbox, Menu, ScrollArea, Table } from '@mantine/core';
+import { MediaTypeEnum } from '../../types/media-type.enum';
+import { getElementFactory, getHeaderFactory } from './media-types/media-type-factory';
+import classes from './media-table.module.css';
 
 export enum TableSelectionAction {
   Download,
@@ -33,8 +28,7 @@ export function MediaTable(props: TableProps) {
 
   useEffect(() => {
     if (scrollRef.current) {
-      const parentRect =
-        scrollRef.current.parentElement?.getBoundingClientRect();
+      const parentRect = scrollRef.current.parentElement?.getBoundingClientRect();
 
       if (parentRect) {
         setScrollHeight(0.75 * parentRect?.height);
@@ -43,16 +37,16 @@ export function MediaTable(props: TableProps) {
   }, [scrollRef.current]);
 
   const rows = props.items.map((item) => (
-    <tr key={item.id}>
-      <td>
+    <Table.Tr key={item.id}>
+      <Table.Td>
         <Checkbox
           checked={!!props.selectedItems.includes(item.id)}
           onChange={() => props.onItemSelected(item.id)}
         ></Checkbox>
-      </td>
+      </Table.Td>
       {getElementFactory(props.mediaType)(item).map((el) => el)}
-      <td></td>
-    </tr>
+      <Table.Td></Table.Td>
+    </Table.Tr>
   ));
 
   return (
@@ -63,63 +57,44 @@ export function MediaTable(props: TableProps) {
       type="never"
     >
       <Table>
-        <thead
-          className={[
-            classes.tableHeader,
-            ...[scrolled ? classes.scrolled : ""],
-          ].join(" ")}
+        <Table.Thead
+          className={[classes.tableHeader, ...[scrolled ? classes.scrolled : '']].join(' ')}
         >
-          <tr>
-            <th className={classes.checkboxHeader}>
+          <Table.Tr>
+            <Table.Th className={classes.checkboxHeader}>
               {props.showSelectAll && (
                 <Checkbox
                   checked={
-                    !!props.items.length &&
-                    props.items.length === props.selectedItems.length
+                    !!props.items.length && props.items.length === props.selectedItems.length
                   }
                   onChange={() => props.onSelectAll && props.onSelectAll()}
                 ></Checkbox>
               )}
-            </th>
+            </Table.Th>
             {getHeaderFactory(props.mediaType)()}
-            <th>
+            <Table.Th>
               <Menu>
                 <Menu.Target>
-                  <ActionIcon
-                    variant="transparent"
-                    disabled={!props.selectedItems.length}
-                  >
+                  <ActionIcon variant="transparent" disabled={!props.selectedItems.length}>
                     <IconDots></IconDots>
                   </ActionIcon>
                 </Menu.Target>
 
                 <Menu.Dropdown>
-                  <Menu.Item
-                    onClick={() =>
-                      props.onSelectionAction(TableSelectionAction.Download)
-                    }
-                  >
+                  <Menu.Item onClick={() => props.onSelectionAction(TableSelectionAction.Download)}>
                     Download Selection
                   </Menu.Item>
-                  <Menu.Item
-                    onClick={() =>
-                      props.onSelectionAction(TableSelectionAction.Delete)
-                    }
-                  >
+                  <Menu.Item onClick={() => props.onSelectionAction(TableSelectionAction.Delete)}>
                     Delete Selection
                   </Menu.Item>
-                  <Menu.Item
-                    onClick={() =>
-                      props.onSelectionAction(TableSelectionAction.Play)
-                    }
-                  >
+                  <Menu.Item onClick={() => props.onSelectionAction(TableSelectionAction.Play)}>
                     Play Selection
                   </Menu.Item>
                 </Menu.Dropdown>
               </Menu>
-            </th>
-          </tr>
-        </thead>
+            </Table.Th>
+          </Table.Tr>
+        </Table.Thead>
         <tbody>{rows}</tbody>
       </Table>
     </ScrollArea>

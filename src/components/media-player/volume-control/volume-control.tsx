@@ -1,19 +1,14 @@
-import { ActionIcon, Group, Slider, Tooltip } from "@mantine/core";
-import { useEffect, useRef, useState } from "react";
-import { useMediaStore } from "../state-machine/use-media-store";
-import { mediaPlayerStore } from "../state-machine/media-player-store";
-import {
-  IconVolume,
-  IconVolumeOff,
-  IconVolume2,
-  IconVolume3,
-} from "@tabler/icons-react";
+import { useEffect, useRef, useState } from 'react';
+import { IconVolume, IconVolume2, IconVolume3, IconVolumeOff } from '@tabler/icons-react';
+import { ActionIcon, Group, Slider, Tooltip } from '@mantine/core';
 import mediaPlayerEvents, {
   MediaPlayerEventType,
-} from "../../../events/media-player/media-player.events";
+} from '../../../events/media-player/media-player.events';
+import { mediaPlayerStore } from '../state-machine/media-player-store';
+import { useMediaStore } from '../state-machine/use-media-store';
 
-const mediapireVolumeKey = "mediapire_media_volume";
-const mediapireVolumeMutedKey = "mediapire_media_volume_muted";
+const mediapireVolumeKey = 'mediapire_media_volume';
+const mediapireVolumeMutedKey = 'mediapire_media_volume_muted';
 
 export const VolumeControl = () => {
   const [dragging, setDragging] = useState(false);
@@ -67,12 +62,13 @@ export const VolumeControl = () => {
 
   const VolumeIcon = getVolumeIcon();
   return (
-    <Group spacing={10}>
-      <Tooltip label={muted ? "Unmute" : "Mute"}>
+    <Group gap={10}>
+      <Tooltip label={muted ? 'Unmute' : 'Mute'}>
         <ActionIcon
           size="xs"
-          color={isActive ? "" : "gray.4"}
+          color={isActive ? '' : 'gray.4'}
           onClick={handleMute}
+          variant="subtle"
         >
           <VolumeIcon
             onMouseEnter={() => setVolumeIconHovered(true)}
@@ -82,7 +78,7 @@ export const VolumeControl = () => {
       </Tooltip>
       <Slider
         ref={sliderRef}
-        color={isActive ? "" : "gray.4"}
+        color={isActive ? '' : 'gray.4'}
         label={null}
         size="xs"
         min={0}
@@ -97,7 +93,7 @@ export const VolumeControl = () => {
           setTimeout(() => setDragging(false), 100);
         }}
         value={volume}
-        style={{ width: "100px" }}
+        style={{ width: '100px' }}
         styles={() => ({
           bar: {
             opacity: volume === 0 ? 0 : 1,

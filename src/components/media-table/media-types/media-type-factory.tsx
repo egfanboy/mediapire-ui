@@ -1,5 +1,6 @@
-import React from "react";
-import { MediaTypeEnum } from "../../../types/media-type.enum";
+import React, { JSX } from 'react';
+import { Table } from '@mantine/core';
+import { MediaTypeEnum } from '../../../types/media-type.enum';
 
 type MediaTypeElementFactoryMapping = {
   [key: string]: (item: MediaItemWithNodeId) => JSX.Element[];
@@ -9,12 +10,12 @@ type MediaTypeHeaderFactoryMapping = {
 };
 
 const getElementDefault = (item: MediaItemWithNodeId) => {
-  return [<td key={`item-name-${item.id}`}>{item.name}</td>];
+  return [<Table.Td key={`item-name-${item.id}`}>{item.name}</Table.Td>];
 };
 
 const getDefaultHeaders = () => (
   <>
-    <th>Title</th>
+    <Table.Th>Title</Table.Th>
   </>
 );
 
@@ -22,17 +23,17 @@ const getMp3Element = (item: MediaItemWithNodeId) => {
   const mp3Item = item as Mp3MediaItem;
 
   return [
-    <td key={`mp3item-name-${mp3Item.id}`}>{mp3Item.name}</td>,
-    <td key={`mp3item-album-${mp3Item.id}`}>{mp3Item.metadata.album}</td>,
-    <td key={`mp3item-artist-${mp3Item.id}`}>{mp3Item.metadata.artist}</td>,
+    <Table.Td key={`mp3item-name-${mp3Item.id}`}>{mp3Item.name}</Table.Td>,
+    <Table.Td key={`mp3item-album-${mp3Item.id}`}>{mp3Item.metadata.album}</Table.Td>,
+    <Table.Td key={`mp3item-artist-${mp3Item.id}`}>{mp3Item.metadata.artist}</Table.Td>,
   ];
 };
 
 const getMp3Headers = () => (
   <>
-    <th>Title</th>
-    <th>Album</th>
-    <th>Artist</th>
+    <Table.Th>Title</Table.Th>
+    <Table.Th>Album</Table.Th>
+    <Table.Th>Artist</Table.Th>
   </>
 );
 

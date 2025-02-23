@@ -1,10 +1,9 @@
-import React, { useEffect } from "react";
-
-import { Title, Text, Button, Container, Group } from "@mantine/core";
-import classes from "./error-page.module.css";
-import { mediapireService } from "../../services/mediapire/mediapire";
-import { useNavigate } from "react-router-dom";
-import { libraryBasePath, routeSetup } from "../../utils/constants";
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button, Container, Group, Text, Title } from '@mantine/core';
+import { mediapireService } from '../../services/mediapire/mediapire';
+import { libraryBasePath, routeSetup } from '../../utils/constants';
+import classes from './error-page.module.css';
 
 export function ErrorPage() {
   const config = mediapireService.getManagerConfig();
@@ -17,12 +16,10 @@ export function ErrorPage() {
 
   return (
     <Container className={classes.root}>
-      <Title className={classes.title}>
-        Cannot connect to your Mediapire instance.
-      </Title>
+      <Title className={classes.title}>Cannot connect to your Mediapire instance.</Title>
       <Text c="dimmed" size="lg" ta="left" className={classes.description}>
-        There was an issue communicating with your Mediapire instance. The
-        details of your configured instance are as follows:
+        There was an issue communicating with your Mediapire instance. The details of your
+        configured instance are as follows:
       </Text>
       <Text c="dimmed" size="md" ta="left">
         Host: {config.host}
@@ -31,11 +28,10 @@ export function ErrorPage() {
         Port: {config.port}
       </Text>
       <Text c="dimmed" size="lg" ta="left" className={classes.description}>
-        If this information looks correct, you can go back to your library.
-        However, if these details are invalid you can go back and change your
-        Mediapire instance details.
+        If this information looks correct, you can go back to your library. However, if these
+        details are invalid you can go back and change your Mediapire instance details.
       </Text>
-      <Group position="center">
+      <Group justify="center">
         <Button
           ta="center"
           size="md"

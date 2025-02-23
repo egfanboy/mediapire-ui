@@ -1,32 +1,26 @@
-import React, { useEffect, useState } from "react";
-import { mediaService } from "../../../services/media/media-service";
-import { Box, Group, Skeleton, ActionIcon, Tooltip, Flex } from "@mantine/core";
+import React, { useEffect, useState } from 'react';
+import { IconAlertCircle, IconRefresh } from '@tabler/icons-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ActionIcon, Box, Flex, Group, Skeleton, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import {
-  MediaTable,
-  TableSelectionAction,
-} from "../../../components/media-table/media-table";
-import { notifications } from "@mantine/notifications";
-import { IconAlertCircle, IconRefresh } from "@tabler/icons-react";
-
-import { useLocation, useNavigate } from "react-router-dom";
-import { routeDownloadStatus, routeError } from "../../../utils/constants";
-import {
-  GenericConfirmationModal,
   actionType,
-} from "../../../components/generic-confirmation-modal/generic-confirmation-modal";
-
+  GenericConfirmationModal,
+} from '../../../components/generic-confirmation-modal/generic-confirmation-modal';
+import playbackManager from '../../../components/media-player/playback-manager/playback-manager';
+import { mediaPlayerStore } from '../../../components/media-player/state-machine/media-player-store';
+import { MediaTable, TableSelectionAction } from '../../../components/media-table/media-table';
+import { TextSearch } from '../../../components/text-search/text-search';
 import mediaPlayerEvents, {
   MediaPlayerEventType,
-} from "../../../events/media-player/media-player.events";
-import { useMediaStore } from "../../../stores/media/use-media-store";
-import { mediaStore } from "../../../stores/media/media-store";
-import { debounce } from "../../../utils/debounce";
-
-import styles from "./media-library.module.css";
-import { TextSearch } from "../../../components/text-search/text-search";
-import { filterItem } from "./filter-item";
-import playbackManager from "../../../components/media-player/playback-manager/playback-manager";
-import { mediaPlayerStore } from "../../../components/media-player/state-machine/media-player-store";
+} from '../../../events/media-player/media-player.events';
+import { mediaService } from '../../../services/media/media-service';
+import { mediaStore } from '../../../stores/media/media-store';
+import { useMediaStore } from '../../../stores/media/use-media-store';
+import { routeDownloadStatus, routeError } from '../../../utils/constants';
+import { debounce } from '../../../utils/debounce';
+import { filterItem } from './filter-item';
+import styles from './media-library.module.css';
 
 export function MediaLibrary() {
   const library = useMediaStore((s) => s.media);
@@ -36,7 +30,7 @@ export function MediaLibrary() {
   const [downloading, setDownloading] = useState(false);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const [filteredItems, setFilteredItems] = useState<MediaItemWithNodeId[]>([]);
-  const [filter, setFilter] = useState("");
+  const [filter, setFilter] = useState('');
 
   const navigate = useNavigate();
 
@@ -120,16 +114,16 @@ export function MediaLibrary() {
     mediaService
       .downloadMedia(items)
       .then((res) => {
-        navigate(routeDownloadStatus.replace(":id", res.id), {
+        navigate(routeDownloadStatus.replace(':id', res.id), {
           state: { id: res.id },
         });
       })
       .catch(() => {
         notifications.show({
-          title: "Error",
-          message: "Failed to start download.",
+          title: 'Error',
+          message: 'Failed to start download.',
           autoClose: 5000,
-          color: "red",
+          color: 'red',
           icon: <IconAlertCircle></IconAlertCircle>,
         });
       });
@@ -149,10 +143,10 @@ export function MediaLibrary() {
       })
       .catch(() => {
         notifications.show({
-          title: "Error",
-          message: "Failed to start media delete.",
+          title: 'Error',
+          message: 'Failed to start media delete.',
           autoClose: 5000,
-          color: "red",
+          color: 'red',
           icon: <IconAlertCircle></IconAlertCircle>,
         });
       });
@@ -204,29 +198,20 @@ export function MediaLibrary() {
         show={showConfirmDeleteModal}
         onClose={() => setShowConfirmDeleteModal(false)}
         action={{
-          label: "Delete Selection",
+          label: 'Delete Selection',
           type: actionType.destructive,
           action: () => deleteSelectedItems(),
         }}
       >
-        Would you like to delete these {selectedItems.length} item(s)? This may
-        take some time and you might need to refresh your library to see these
-        files removed.
+        Would you like to delete these {selectedItems.length} item(s)? This may take some time and
+        you might need to refresh your library to see these files removed.
       </GenericConfirmationModal>
 
       <Flex direction="row">
-        <TextSearch
-          className={styles.searchBox}
-          onSearch={handleSearch}
-          clearable
-        />
-        <Group position="right" mt="md" style={{ marginLeft: "auto" }}>
+        <TextSearch className={styles.searchBox} onSearch={handleSearch} clearable />
+        <Group justify="right" mt="md" style={{ marginLeft: 'auto' }}>
           <Tooltip label="Refresh Library">
-            <ActionIcon
-              variant="outline"
-              color=""
-              onClick={() => fetchLibrary()}
-            >
+            <ActionIcon variant="outline" color="" onClick={() => fetchLibrary()}>
               <IconRefresh></IconRefresh>
             </ActionIcon>
           </Tooltip>
