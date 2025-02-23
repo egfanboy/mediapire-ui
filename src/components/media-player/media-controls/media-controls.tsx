@@ -1,20 +1,19 @@
-import React from "react";
-import styles from "./media-controls.module.css";
-import { ActionIcon, Group, Tooltip, useMantineTheme } from "@mantine/core";
+import React from 'react';
 import {
-  IconPlayerPlayFilled,
+  IconArrowsShuffle,
   IconPlayerPauseFilled,
+  IconPlayerPlayFilled,
   IconPlayerSkipBackFilled,
   IconPlayerSkipForwardFilled,
-  IconArrowsShuffle,
   IconRepeat,
   IconRepeatOnce,
-} from "@tabler/icons-react";
-import { useMediaStore } from "../state-machine/use-media-store";
-
+} from '@tabler/icons-react';
+import { ActionIcon, Group, Tooltip, useMantineTheme } from '@mantine/core';
 import mediaPlayerEvents, {
   MediaPlayerEventType,
-} from "../../../events/media-player/media-player.events";
+} from '../../../events/media-player/media-player.events';
+import { useMediaStore } from '../state-machine/use-media-store';
+import styles from './media-controls.module.css';
 
 export const MediaControls = () => {
   const repeatMode = useMediaStore((state) => state.repeatMode);
@@ -25,7 +24,7 @@ export const MediaControls = () => {
   const theme = useMantineTheme();
 
   const getRepeatIcon = () => {
-    if (repeatMode === "one") {
+    if (repeatMode === 'one') {
       return IconRepeatOnce;
     }
 
@@ -33,16 +32,16 @@ export const MediaControls = () => {
   };
 
   const getRepeatModeTooltip = () => {
-    if (repeatMode === "one") {
-      return "No repeat";
+    if (repeatMode === 'one') {
+      return 'No repeat';
     }
 
-    if (repeatMode === "none") {
-      return "Repeat all";
+    if (repeatMode === 'none') {
+      return 'Repeat all';
     }
 
-    if (repeatMode === "all") {
-      return "Repeat current";
+    if (repeatMode === 'all') {
+      return 'Repeat current';
     }
   };
 
@@ -58,9 +57,7 @@ export const MediaControls = () => {
 
   const handleMainActionClick = () => {
     mediaPlayerEvents.dispatchEvent({
-      type: shouldPlay()
-        ? MediaPlayerEventType.Play
-        : MediaPlayerEventType.Pause,
+      type: shouldPlay() ? MediaPlayerEventType.Play : MediaPlayerEventType.Pause,
     });
   };
 
@@ -74,11 +71,12 @@ export const MediaControls = () => {
 
   return (
     <Group>
-      <Tooltip label={shuffling ? "Unshuffle" : "Shuffle"}>
+      <Tooltip label={shuffling ? 'Unshuffle' : 'Shuffle'}>
         <ActionIcon
           size="sm"
+          variant="subtle"
           onClick={makeEventFunction(MediaPlayerEventType.ToggleShuffle)}
-          color={shuffling ? "" : "gray.4"}
+          color={shuffling ? '' : 'gray.4'}
         >
           <IconArrowsShuffle></IconArrowsShuffle>
         </ActionIcon>
@@ -86,6 +84,7 @@ export const MediaControls = () => {
       <ActionIcon
         color={theme.primaryColor}
         size="lg"
+        variant="subtle"
         onClick={() =>
           mediaPlayerEvents.dispatchEvent({
             type: MediaPlayerEventType.Previous,
@@ -95,7 +94,7 @@ export const MediaControls = () => {
         <IconPlayerSkipBackFilled></IconPlayerSkipBackFilled>
       </ActionIcon>
       <ActionIcon
-        className={styles["play-button"]}
+        className={styles['play-button']}
         color={theme.primaryColor}
         variant="filled"
         size="xl"
@@ -107,6 +106,7 @@ export const MediaControls = () => {
       <ActionIcon
         color={theme.primaryColor}
         size="lg"
+        variant="subtle"
         onClick={() =>
           mediaPlayerEvents.dispatchEvent({
             type: MediaPlayerEventType.Next,
@@ -118,8 +118,9 @@ export const MediaControls = () => {
       <Tooltip label={getRepeatModeTooltip()}>
         <ActionIcon
           size="sm"
+          variant="subtle"
           onClick={makeEventFunction(MediaPlayerEventType.ToggleRepeatMode)}
-          color={repeatMode === "none" ? "gray.4" : ""}
+          color={repeatMode === 'none' ? 'gray.4' : ''}
         >
           <RepeatIcon></RepeatIcon>
         </ActionIcon>

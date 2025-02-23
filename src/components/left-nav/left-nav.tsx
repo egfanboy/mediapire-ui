@@ -1,14 +1,13 @@
-import React from "react";
-import { Navbar } from "@mantine/core";
-
-import { MenuItems } from "./menu-items";
+import React from 'react';
+import { AppShell, AppShellNavbar } from '@mantine/core';
+import { MenuItems } from './menu-items';
 
 export const LeftNav = () => {
   return (
-    <Navbar p="xs" hiddenBreakpoint="sm" width={{ sm: 100, lg: 200 }}>
-      <Navbar.Section grow mt="xs">
+    <AppShellNavbar p="xs">
+      <AppShell.Section grow mt="xs">
         <MenuItems />
-      </Navbar.Section>
-    </Navbar>
+      </AppShell.Section>
+    </AppShellNavbar>
   );
 };

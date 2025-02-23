@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from "react";
-import styles from "./download-status-page.module.css";
+import React, { useEffect, useState } from 'react';
+import { IconExclamationCircle } from '@tabler/icons-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Button, Container, Grid, Loader, Skeleton, Text } from '@mantine/core';
+import { mediaService } from '../../services/media/media-service';
+import { routeError } from '../../utils/constants';
+import { CompleteDownload } from './complete-download/complete-download';
+import { DownloadInfo } from './download-status.types';
+import styles from './download-status-page.module.css';
 
-import { useNavigate, useParams } from "react-router-dom";
-import { mediaService } from "../../services/media/media-service";
-import { routeError } from "../../utils/constants";
-import { Container, Grid, Text, Button, Skeleton, Loader } from "@mantine/core";
-import { DownloadInfo } from "./download-status.types";
-import { CompleteDownload } from "./complete-download/complete-download";
-import { IconExclamationCircle } from "@tabler/icons-react";
-
-const transientStatuses = ["in_progress", "pending", "processing_complete"];
+const transientStatuses = ['in_progress', 'pending', 'processing_complete'];
 
 const pollingInterval = 5000;
 
@@ -32,7 +31,8 @@ export function DownloadStatusPage() {
 
   useEffect(() => {
     if (params.id === undefined) {
-      return navigate("/");
+      navigate('/');
+      return;
     }
 
     fetchDownload(params.id);
@@ -72,35 +72,29 @@ export function DownloadStatusPage() {
         <Grid justify="center">
           <Grid.Col span={6}>
             <div className={styles.productInfo}>
-              {download.status === "failed" && (
+              {download.status === 'failed' && (
                 <Container dir="column">
                   <IconExclamationCircle className={styles.failedIcon} />
-                  <Text align="left">
-                    Unfortunately your download was not able to complete
-                    successfully due to: {download.failureReason}
+                  <Text ta="left">
+                    Unfortunately your download was not able to complete successfully due to:{' '}
+                    {download.failureReason}
                   </Text>
 
-                  <Button onClick={() => window.history.back()}>
-                    Back To Media
-                  </Button>
+                  <Button onClick={() => window.history.back()}>Back To Media</Button>
                 </Container>
               )}
 
-              {download.status !== "complete" &&
-                download.status !== "failed" && (
-                  <div className={styles.loaderContainer}>
-                    <Loader size={40} />
-                    <Text size="xl" className={styles.loaderText}>
-                      Your download is currently in progress. Once it is
-                      complete you will be able to download all the media you
-                      have requested.
-                    </Text>
-                  </div>
-                )}
-
-              {download.status === "complete" && (
-                <CompleteDownload downloadInfo={download} />
+              {download.status !== 'complete' && download.status !== 'failed' && (
+                <div className={styles.loaderContainer}>
+                  <Loader size={40} />
+                  <Text size="xl" className={styles.loaderText}>
+                    Your download is currently in progress. Once it is complete you will be able to
+                    download all the media you have requested.
+                  </Text>
+                </div>
               )}
+
+              {download.status === 'complete' && <CompleteDownload downloadInfo={download} />}
             </div>
           </Grid.Col>
         </Grid>

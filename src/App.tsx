@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { Header, AppShell, Skeleton, Title } from "@mantine/core";
-
-import { Notifications } from "@mantine/notifications";
-import { MantineProvider } from "@mantine/core";
-import { WelcomePage } from "./pages/welcome/welcome";
-import { mediapireService } from "./services/mediapire/mediapire";
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { AppShell, Skeleton, Title, useMantineColorScheme } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
+import { Footer } from './components/footer/footer';
+import { LeftNav } from './components/left-nav/left-nav';
+import { DownloadStatusPage } from './pages/download/download-status-page';
+import { ErrorPage } from './pages/error/error';
+import { LibraryPage } from './pages/library/library';
+import { ManagePage } from './pages/manage/manager';
+import { WelcomePage } from './pages/welcome/welcome';
+import { mediapireService } from './services/mediapire/mediapire';
 import {
   libraryBasePath,
   routeDownloadStatus,
@@ -13,16 +17,19 @@ import {
   routeManage,
   routeMediaLibrary,
   routeSetup,
-} from "./utils/constants";
-import { LibraryPage } from "./pages/library/library";
-import { ErrorPage } from "./pages/error/error";
-import { DownloadStatusPage } from "./pages/download/download-status-page";
-import { Footer } from "./components/footer/footer";
-import { LeftNav } from "./components/left-nav/left-nav";
-import { ManagePage } from "./pages/manage/manager";
+} from './utils/constants';
+
+import '@mantine/core/styles.css';
+
+import styles from './App.module.css';
+
+const NO_NAV_ROUTES = [routeSetup];
 
 export function App() {
   const [init, setInit] = useState(true);
+  const [footerOpened, setFooterOpened] = useState(false);
+
+  const { colorScheme } = useMantineColorScheme();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,9 +39,9 @@ export function App() {
 
     if (config === null) {
       navigate(routeSetup);
+    } else {
+      navigate(libraryBasePath);
     }
-
-    navigate(libraryBasePath);
   };
 
   useEffect(() => {
@@ -42,47 +49,46 @@ export function App() {
 
     if (config === null) {
       navigate(routeSetup);
-    }
+    } else {
+      // We have the manager config
 
-    // if no route, just reroute to the library
-    if (location.pathname === "/") {
-      navigate(libraryBasePath);
+      // if no route, just reroute to the library
+      if (location.pathname === '/') {
+        navigate(libraryBasePath);
+      }
     }
 
     setInit(false);
   }, []);
 
   return (
-    <MantineProvider
-      theme={{
-        primaryColor: "violet",
+    <AppShell
+      header={{ height: 60 }}
+      navbar={{
+        width: 200,
+        breakpoint: 'sm',
+        collapsed: { desktop: NO_NAV_ROUTES.includes(location.pathname) },
       }}
-      withCSSVariables
+      footer={{ height: 100, collapsed: !footerOpened }}
+      padding="md"
+      styles={(theme) => ({
+        main: {
+          backgroundColor: colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0],
+        },
+      })}
     >
-      <AppShell
-        padding="md"
-        header={
-          <Header height={60} p="xs">
-            <Title
-              order={1}
-              onClick={() => handleHomeNavigate()}
-              style={{ cursor: "pointer", userSelect: "none" }}
-            >
-              Mediapire
-            </Title>
-          </Header>
-        }
-        navbar={<LeftNav />}
-        footer={<Footer />}
-        styles={(theme) => ({
-          main: {
-            backgroundColor:
-              theme.colorScheme === "dark"
-                ? theme.colors.dark[8]
-                : theme.colors.gray[0],
-          },
-        })}
-      >
+      <AppShell.Header p="xs">
+        <Title
+          order={1}
+          onClick={() => handleHomeNavigate()}
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+        >
+          Mediapire
+        </Title>
+      </AppShell.Header>
+      <Footer setFooterOpened={setFooterOpened} />
+      <LeftNav />
+      <AppShell.Main>
         <Notifications />
         {init && (
           <>
@@ -98,7 +104,7 @@ export function App() {
           <Route path={routeManage} element={<ManagePage />} />
           <Route path={routeDownloadStatus} element={<DownloadStatusPage />} />
         </Routes>
-      </AppShell>
-    </MantineProvider>
+      </AppShell.Main>
+    </AppShell>
   );
 }

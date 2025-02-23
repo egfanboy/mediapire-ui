@@ -1,20 +1,20 @@
 import mediaPlayerEvents, {
   MediaPlayerEventType,
-} from "../../../events/media-player/media-player.events";
-import { mediaStore } from "../../../stores/media/media-store";
-import { mediaPlayerStore } from "../state-machine/media-player-store";
-import { shuffleArray } from "./utils/shuffle-array";
+} from '../../../events/media-player/media-player.events';
+import { mediaStore } from '../../../stores/media/media-store';
+import { mediaPlayerStore } from '../state-machine/media-player-store';
+import { shuffleArray } from './utils/shuffle-array';
 
 // time tolerance in seconds when handling the previous media event
 const PREVIOUS_TIME_TOLERANCE = 3;
 
 // Localstorage defaults therefore represent a stringified version of their value
-const VOLUME_DEFAULT = "75";
-const MUTED_DEFAULT = "false";
+const VOLUME_DEFAULT = '0.75';
+const MUTED_DEFAULT = 'false';
 
-const localStoragePlaybackStateKey = "mediapire_media_playback_state";
-const localStorageVolumeStateKey = "mediapire_playback_volume_state";
-const localStorageVolumeMutedKey = "mediapire_playback_volume_muted";
+const localStoragePlaybackStateKey = 'mediapire_media_playback_state';
+const localStorageVolumeStateKey = 'mediapire_playback_volume_state';
+const localStorageVolumeMutedKey = 'mediapire_playback_volume_muted';
 
 class _playbackManager {
   constructor() {
@@ -49,7 +49,7 @@ class _playbackManager {
 
   shuffledMedia = [];
 
-  currentMediaId = "";
+  currentMediaId = '';
 
   init() {
     for (const key in this.eventHandlerMapping) {
@@ -68,23 +68,23 @@ class _playbackManager {
 
     this.media = [];
     this.shuffledMedia = [];
-    this.currentMediaId = "";
+    this.currentMediaId = '';
   }
 
   toggleRepeatMode() {
     const currentState = mediaPlayerStore.getSnapshot();
 
     const { repeatMode } = currentState;
-    let newRepeatMode = "";
-    if (repeatMode === "none") {
-      newRepeatMode = "all";
+    let newRepeatMode = '';
+    if (repeatMode === 'none') {
+      newRepeatMode = 'all';
     }
-    if (repeatMode === "all") {
-      newRepeatMode = "one";
+    if (repeatMode === 'all') {
+      newRepeatMode = 'one';
     }
 
-    if (repeatMode === "one") {
-      newRepeatMode = "none";
+    if (repeatMode === 'one') {
+      newRepeatMode = 'none';
     }
 
     if (newRepeatMode) {
@@ -98,13 +98,9 @@ class _playbackManager {
   }
 
   handleNext() {
-    const targetList = this.shuffledMedia.length
-      ? this.shuffledMedia
-      : this.media;
+    const targetList = this.shuffledMedia.length ? this.shuffledMedia : this.media;
 
-    const currentMediaIndex = targetList.findIndex(
-      (m) => m.id === this.currentMediaId
-    );
+    const currentMediaIndex = targetList.findIndex((m) => m.id === this.currentMediaId);
 
     if (currentMediaIndex !== -1) {
       const isLast = currentMediaIndex === targetList.length - 1;
@@ -134,12 +130,8 @@ class _playbackManager {
   handlePrevious() {
     const currentState = mediaPlayerStore.getSnapshot();
     if (currentState.playbackTime < PREVIOUS_TIME_TOLERANCE) {
-      const targetList = this.shuffledMedia.length
-        ? this.shuffledMedia
-        : this.media;
-      const currentMediaIndex = targetList.findIndex(
-        (m) => m.id === this.currentMediaId
-      );
+      const targetList = this.shuffledMedia.length ? this.shuffledMedia : this.media;
+      const currentMediaIndex = targetList.findIndex((m) => m.id === this.currentMediaId);
 
       const isFirstItem = currentMediaIndex === 0;
 
@@ -209,8 +201,7 @@ class _playbackManager {
 
         // if we are shuffling take a random index as the starting point
         if (currentState.shuffling) {
-          mediaToPlay =
-            this.media[Math.floor(Math.random() * this.media.length)];
+          mediaToPlay = this.media[Math.floor(Math.random() * this.media.length)];
         }
 
         this.currentMediaId = mediaToPlay.id;
@@ -242,9 +233,7 @@ class _playbackManager {
 
   shuffleMedia(shuffle: boolean) {
     if (shuffle && this.media.length) {
-      const currentMediaIndex = this.media.findIndex(
-        (m) => m.id === this.currentMediaId
-      );
+      const currentMediaIndex = this.media.findIndex((m) => m.id === this.currentMediaId);
 
       const media = [...this.media];
 
@@ -271,18 +260,12 @@ class _playbackManager {
 
   updateVolumeLocalStorage() {
     const currentState = mediaPlayerStore.getSnapshot();
-    localStorage.setItem(
-      localStorageVolumeStateKey,
-      JSON.stringify(currentState.volume)
-    );
+    localStorage.setItem(localStorageVolumeStateKey, JSON.stringify(currentState.volume));
   }
 
   updateVolumeMutedLocalStorage() {
     const currentState = mediaPlayerStore.getSnapshot();
-    localStorage.setItem(
-      localStorageVolumeMutedKey,
-      JSON.stringify(currentState.muted)
-    );
+    localStorage.setItem(localStorageVolumeMutedKey, JSON.stringify(currentState.muted));
   }
 
   readFromLocalStorage() {
@@ -291,13 +274,11 @@ class _playbackManager {
         '{"shuffling":false, "repeatMode": "none"}'
     );
 
-    const mutedValue =
-      localStorage.getItem(localStorageVolumeMutedKey) || MUTED_DEFAULT;
+    const mutedValue = localStorage.getItem(localStorageVolumeMutedKey) || MUTED_DEFAULT;
 
-    const muted = mutedValue === "true";
+    const muted = mutedValue === 'true';
 
-    const volumeValue =
-      localStorage.getItem(localStorageVolumeStateKey) || VOLUME_DEFAULT;
+    const volumeValue = localStorage.getItem(localStorageVolumeStateKey) || VOLUME_DEFAULT;
 
     mediaPlayerStore.setState((state) => ({
       ...state,
@@ -311,26 +292,22 @@ class _playbackManager {
   handlePlaybackEnded() {
     const currentState = mediaPlayerStore.getSnapshot();
 
-    if (currentState.repeatMode === "one") {
+    if (currentState.repeatMode === 'one') {
       return mediaPlayerStore.setState((state) => ({
         ...state,
         playbackTime: 0,
       }));
     }
 
-    const targetList = this.shuffledMedia.length
-      ? this.shuffledMedia
-      : this.media;
+    const targetList = this.shuffledMedia.length ? this.shuffledMedia : this.media;
 
-    const currentMediaIndex = targetList.findIndex(
-      (m) => m.id === this.currentMediaId
-    );
+    const currentMediaIndex = targetList.findIndex((m) => m.id === this.currentMediaId);
 
     const isLastSong = currentMediaIndex === targetList.length - 1;
 
     if (isLastSong) {
       // no repeat so stop playback
-      if (currentState.repeatMode !== "all") {
+      if (currentState.repeatMode !== 'all') {
         return mediaPlayerStore.setState((state) => ({
           ...state,
           playbackTime: 0,
@@ -365,8 +342,7 @@ class _playbackManager {
 
     if (currentState.muted) {
       // get user volume from localstorage
-      const volume =
-        localStorage.getItem(localStorageVolumeStateKey) || VOLUME_DEFAULT;
+      const volume = localStorage.getItem(localStorageVolumeStateKey) || VOLUME_DEFAULT;
 
       mediaPlayerStore.setState((state) => ({
         ...state,

@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
-  UnstyledButton,
-  Group,
-  ThemeIcon,
   Collapse,
+  Group,
   Text,
-} from "@mantine/core";
-import { CollapsibleArrow } from "../collapsible-arrow/collapsible-arrow";
-import { Link, useLocation } from "react-router-dom";
+  ThemeIcon,
+  UnstyledButton,
+  useMantineColorScheme,
+  useMantineTheme,
+} from '@mantine/core';
+import { CollapsibleArrow } from '../collapsible-arrow/collapsible-arrow';
+import styles from './menu-item.module.css';
 
 interface menuItemProps {
   item: any;
@@ -17,12 +20,11 @@ interface menuItemProps {
 export const MenuItem = ({ item, parentItem }: menuItemProps) => {
   const [expanded, setExpanded] = useState(false);
   const location = useLocation();
+  const theme = useMantineTheme();
+  const { colorScheme } = useMantineColorScheme();
 
   useEffect(() => {
-    if (
-      location.pathname.startsWith(item.href) &&
-      location.pathname !== item.href
-    ) {
+    if (location.pathname.startsWith(item.href) && location.pathname !== item.href) {
       const hasChildren = item.items?.length;
 
       setExpanded(hasChildren);
@@ -31,7 +33,7 @@ export const MenuItem = ({ item, parentItem }: menuItemProps) => {
 
   const hasChildren = item.items?.length;
 
-  const href = (parentItem?.href || "") + item.href;
+  const href = (parentItem?.href || '') + item.href;
 
   const isActive =
     location.pathname === href ||
@@ -42,28 +44,38 @@ export const MenuItem = ({ item, parentItem }: menuItemProps) => {
     <>
       <UnstyledButton
         onClick={() => hasChildren && setExpanded(!expanded)}
-        sx={(theme) => ({
-          display: "block",
-          width: "100%",
-          paddingTop: theme.spacing.xs,
-          paddingBottom: theme.spacing.xs,
-          paddingLeft: parentItem
-            ? item.icon
-              ? theme.spacing.xs
-              : theme.spacing.lg
-            : 0,
-
-          borderRadius: theme.radius.sm,
-          color: isActive
+        className={styles.menuItem}
+        style={{
+          '--primary-color': theme.colors[theme.primaryColor][0],
+          '--color': isActive
             ? theme.colors[theme.primaryColor]
-            : theme.colorScheme === "dark"
-            ? theme.colors.dark[0]
-            : theme.black,
+            : colorScheme === 'dark'
+              ? theme.colors.dark[0]
+              : theme.black,
+          '--padding-left': parentItem ? (item.icon ? theme.spacing.xs : theme.spacing.lg) : 0,
+        }}
+        // sx={(theme) => ({
+        //   display: "block",
+        //   width: "100%",
+        //   paddingTop: theme.spacing.xs,
+        //   paddingBottom: theme.spacing.xs,
+        //   paddingLeft: parentItem
+        //     ? item.icon
+        //       ? theme.spacing.xs
+        //       : theme.spacing.lg
+        //     : 0,
 
-          "&:hover": {
-            backgroundColor: theme.colors[theme.primaryColor][0],
-          },
-        })}
+        //   borderRadius: theme.radius.sm,
+        // color: isActive
+        //   ? theme.colors[theme.primaryColor]
+        //   : theme.colorScheme === "dark"
+        //   ? theme.colors.dark[0]
+        //   : theme.black,
+
+        //   "&:hover": {
+        //     backgroundColor: theme.colors[theme.primaryColor][0],
+        //   },
+        // })}
       >
         <Group>
           {item.icon && <ThemeIcon variant="light">{item.icon}</ThemeIcon>}
@@ -76,11 +88,7 @@ export const MenuItem = ({ item, parentItem }: menuItemProps) => {
         <Collapse in={expanded}>
           <div>
             {item.items.map((it: any) => (
-              <MenuItem
-                key={item.label + it.label}
-                item={it}
-                parentItem={item}
-              />
+              <MenuItem key={item.label + it.label} item={it} parentItem={item} />
             ))}
           </div>
         </Collapse>
@@ -93,7 +101,7 @@ export const MenuItem = ({ item, parentItem }: menuItemProps) => {
   }
 
   return (
-    <Link style={{ textDecoration: "none" }} to={href}>
+    <Link style={{ textDecoration: 'none' }} to={href}>
       {content()}
     </Link>
   );

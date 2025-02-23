@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { CompleteDownloadProps } from "../download-status.types";
-import { Button, Container, Grid, Text, Mark, Skeleton } from "@mantine/core";
-import { IconAlertCircle, IconDownload } from "@tabler/icons-react";
-
-import styles from "./complete-download.module.css";
-import { notifications } from "@mantine/notifications";
-import { mediaService } from "../../../services/media/media-service";
-import saveAs from "file-saver";
+import React, { useEffect, useState } from 'react';
+import { IconAlertCircle, IconDownload } from '@tabler/icons-react';
+import saveAs from 'file-saver';
+import { Button, Container, Grid, Group, Mark, Skeleton, Text } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { mediaService } from '../../../services/media/media-service';
+import { CompleteDownloadProps } from '../download-status.types';
+import styles from './complete-download.module.css';
 
 export function CompleteDownload(props: CompleteDownloadProps) {
   const { downloadInfo } = props;
@@ -46,15 +45,13 @@ export function CompleteDownload(props: CompleteDownloadProps) {
       const timeDifference = expiryDateTime.getTime() - currentTime.getTime();
       const hours = Math.floor(timeDifference / (1000 * 60 * 60))
         .toString()
-        .padStart(2, "0");
-      const minutes = Math.floor(
-        (timeDifference % (1000 * 60 * 60)) / (1000 * 60)
-      )
+        .padStart(2, '0');
+      const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60))
         .toString()
-        .padStart(2, "0");
+        .padStart(2, '0');
       const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000)
         .toString()
-        .padStart(2, "0");
+        .padStart(2, '0');
 
       return { hours, minutes, seconds };
     }
@@ -68,15 +65,15 @@ export function CompleteDownload(props: CompleteDownloadProps) {
     mediaService
       .getDownloadContent(downloadInfo.id)
       .then((res) => {
-        saveAs(res, "mediapire-download.zip");
+        saveAs(res, 'mediapire-download.zip');
         setDownloading(false);
       })
       .catch(() => {
         notifications.show({
-          title: "Error",
-          message: "Failed to download file(s).",
+          title: 'Error',
+          message: 'Failed to download file(s).',
           autoClose: 5000,
-          color: "red",
+          color: 'red',
           icon: <IconAlertCircle></IconAlertCircle>,
         });
 
@@ -97,20 +94,18 @@ export function CompleteDownload(props: CompleteDownloadProps) {
   if (timeLeft) {
     return (
       <Container dir="column">
-        <Text align="left" className={styles.infoText}>
-          Your download is complete and is still available for{" "}
+        <Text ta="center" className={styles.infoText}>
+          Your download is complete and is still available for{' '}
           <Mark color="blue">
             {timeLeft?.hours}:{timeLeft?.minutes}:{timeLeft?.seconds}
           </Mark>
         </Text>
 
-        <Button
-          loading={downloading}
-          leftIcon={<IconDownload />}
-          fullWidth={false}
-          onClick={() => download()}
-        >
-          Download
+        <Button loading={downloading} fullWidth={false} onClick={() => download()}>
+          <Group>
+            <IconDownload />
+            <span>Download</span>
+          </Group>
         </Button>
       </Container>
     );
@@ -119,15 +114,12 @@ export function CompleteDownload(props: CompleteDownloadProps) {
       <Container>
         <Grid>
           <Grid.Col>
-            <Text align="left" className={styles.infoText}>
-              Unfortunately your download has expired and is no longer
-              available. You can retrigger the download and have the content
-              avaialble again.
+            <Text ta="left" className={styles.infoText}>
+              Unfortunately your download has expired and is no longer available. You can retrigger
+              the download and have the content avaialble again.
             </Text>
 
-            <Button onClick={() => alert("not yet implemented")}>
-              Download Again
-            </Button>
+            <Button onClick={() => alert('not yet implemented')}>Download Again</Button>
           </Grid.Col>
         </Grid>
       </Container>

@@ -1,9 +1,8 @@
-import React from "react";
-import { Button, Center, Container, Group, Stepper, Text } from "@mantine/core";
-import { useState } from "react";
-import { MediapireForm } from "../../components/mediapire-form/mediapire-form";
-import { useNavigate } from "react-router-dom";
-import { libraryBasePath } from "../../utils/constants";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button, Center, Container, Group, Stepper, Text } from '@mantine/core';
+import { MediapireForm } from '../../components/mediapire-form/mediapire-form';
+import { libraryBasePath } from '../../utils/constants';
 
 export function WelcomePage() {
   const [active, setActive] = useState(0);
@@ -18,14 +17,13 @@ export function WelcomePage() {
 
   return (
     <Container size="xl">
-      <Stepper active={active} breakpoint="sm">
+      <Stepper active={active}>
         <Stepper.Step label="Welcome" description="Get Started">
           <Text>
-            Welcome to the Mediapire manager. Mediapire manager is an
-            application that let's you centrally manage media that is scattered
-            across many devices. It seems like this is your first time here. The
-            assumption is that following these steps will link to your Mediapire
-            manager instance that is already running.
+            Welcome to the Mediapire manager. Mediapire manager is an application that let's you
+            centrally manage media that is scattered across many devices. It seems like this is your
+            first time here. The assumption is that following these steps will link to your
+            Mediapire manager instance that is already running.
           </Text>
         </Stepper.Step>
         <Stepper.Step
@@ -41,7 +39,7 @@ export function WelcomePage() {
         </Stepper.Step>
       </Stepper>
 
-      <Group position="center" mt="xl">
+      <Group justify="center" mt="xl">
         {/* let the form show use its own button */}
         {active === 0 && <Button onClick={nextStep}>Next step</Button>}
         {active === 2 && <Button onClick={viewLibrary}>View Library</Button>}

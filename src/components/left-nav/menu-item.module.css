@@ -1,0 +1,20 @@
+:root {
+  --primary-color: '';
+  --color: '';
+  --padding-left: 0;
+
+  .menuItem {
+    display: block;
+    width: 100%;
+    padding-top: var(--mantine-spacing-xs);
+    padding-bottom: var(--mantine-spacing-xs);
+    padding-left: var(--padding-left);
+
+    border-radius: var(--mantine-radius-xs);
+    color: var(--color);
+
+    &:hover {
+      background-color: var(--primary-color);
+    }
+  }
+}
