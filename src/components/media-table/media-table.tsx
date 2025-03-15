@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { IconDots } from '@tabler/icons-react';
 import { ActionIcon, Checkbox, Menu, ScrollArea, Table } from '@mantine/core';
+import { debounce } from '@/utils/debounce';
 import { MediaTypeEnum } from '../../types/media-type.enum';
 import { getElementFactory, getHeaderFactory } from './media-types/media-type-factory';
 import classes from './media-table.module.css';
@@ -19,19 +20,22 @@ interface TableProps {
   selectedItems: string[];
   showSelectAll?: boolean;
   onSelectAll?: () => void;
+  fetchItems: () => Promise<any>;
 }
 
 export function MediaTable(props: TableProps) {
   const [scrolled, setScrolled] = useState(false);
-  const [scrollHeight, setScrollHeight] = useState(100);
+  const [containerHeight, setcontainerHeight] = useState(100);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [fetching, setFetching] = useState(false);
 
+  // calculates the max height of the container to be a percentage of the parent element
   useEffect(() => {
     if (scrollRef.current) {
       const parentRect = scrollRef.current.parentElement?.getBoundingClientRect();
 
       if (parentRect) {
-        setScrollHeight(0.75 * parentRect?.height);
+        setcontainerHeight(0.75 * parentRect?.height);
       }
     }
   }, [scrollRef.current]);
@@ -49,14 +53,27 @@ export function MediaTable(props: TableProps) {
     </Table.Tr>
   ));
 
+  const handleScroll = debounce(async (event: any) => {
+    const scrolledTop = event.target.scrollTop;
+    setScrolled(scrolledTop > 0);
+
+    if (scrollRef.current) {
+      if (scrollRef.current.scrollHeight - containerHeight - scrolledTop < 200 && !fetching) {
+        setFetching(true);
+        await props.fetchItems();
+        setFetching(false);
+      }
+    }
+  }, 200);
+
   return (
-    <ScrollArea
+    <div
+      onScroll={handleScroll}
       ref={scrollRef}
-      h={scrollHeight}
-      onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
-      type="never"
+      className={classes.container}
+      style={{ maxHeight: containerHeight }}
     >
-      <Table>
+      <Table className={classes.table}>
         <Table.Thead
           className={[classes.tableHeader, ...[scrolled ? classes.scrolled : '']].join(' ')}
         >
@@ -97,6 +114,6 @@ export function MediaTable(props: TableProps) {
         </Table.Thead>
         <tbody>{rows}</tbody>
       </Table>
-    </ScrollArea>
+    </div>
   );
 }
