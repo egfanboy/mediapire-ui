@@ -1,3 +1,3 @@
 export enum MediaTypeEnum {
-  Mp3 = "mp3",
+  Mp3 = 'mp3',
 }

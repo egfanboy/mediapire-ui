@@ -1,16 +1,8 @@
-import {
-  Group,
-  ThemeIcon,
-  Text,
-  useMantineTheme,
-  Tooltip,
-} from "@mantine/core";
-import React from "react";
-
-import { IconServer } from "@tabler/icons-react";
-
-import styles from "./node-item.module.css";
-import { className } from "../../utils/class-names";
+import React from 'react';
+import { IconServer } from '@tabler/icons-react';
+import { Group, Text, ThemeIcon, Tooltip, useMantineTheme } from '@mantine/core';
+import { className } from '../../utils/class-names';
+import styles from './node-item.module.css';
 
 interface nodeItemProps {
   id: string;
@@ -39,20 +31,20 @@ export const NodeItem = ({
     }
 
     if (!isUp) {
-      return "Mediapire cannot connect to node.";
+      return 'Mediapire cannot connect to node.';
     }
   };
 
   const content = () => (
     <div
-      aria-disabled={isUp && !disabled ? "false" : "true"}
+      aria-disabled={isUp && !disabled ? 'false' : 'true'}
       className={className(styles.container, {
         [styles.containerSelected]: selected,
       })}
       style={
         {
-          "--hover-color": mantineTheme.colors[mantineTheme.primaryColor][0],
-          "--selected-color": mantineTheme.colors[mantineTheme.primaryColor][1],
+          '--hover-color': mantineTheme.colors[mantineTheme.primaryColor][0],
+          '--selected-color': mantineTheme.colors[mantineTheme.primaryColor][1],
         } as React.CSSProperties
       }
       onClick={() => isUp && onSelect(id)}
@@ -66,9 +58,7 @@ export const NodeItem = ({
           className={styles.badge}
           style={
             {
-              "--badge-color": isUp
-                ? mantineTheme.colors.green[8]
-                : mantineTheme.colors.red[8],
+              '--badge-color': isUp ? mantineTheme.colors.green[8] : mantineTheme.colors.red[8],
             } as React.CSSProperties
           }
         ></span>

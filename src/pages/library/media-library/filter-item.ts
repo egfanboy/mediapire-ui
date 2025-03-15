@@ -13,7 +13,7 @@ export const filterItem =
      */
     if (mediaItem.metadata) {
       for (const val of Object.values(mediaItem.metadata)) {
-        if (typeof val === "string") {
+        if (typeof val === 'string') {
           const lowerVal = val.toLowerCase();
 
           if (lowerVal.includes(filterTermLower)) {

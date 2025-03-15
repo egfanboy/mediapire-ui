@@ -1,29 +1,23 @@
-import React from "react";
-
-import {
-  IconBook2,
-  IconSettings,
-  IconTransferVertical,
-} from "@tabler/icons-react";
-
-import { MenuItem } from "./menu-item";
+import React from 'react';
+import { IconBook2, IconSettings, IconTransferVertical } from '@tabler/icons-react';
+import { MenuItem } from './menu-item';
 
 const items = [
   {
     icon: <IconBook2 size="1rem" />,
-    label: "Media Library",
-    href: "/library",
+    label: 'Media Library',
+    href: '/library',
   },
   {
     icon: <IconSettings size="1rem" />,
-    label: "Manage",
-    href: "/manage",
+    label: 'Manage',
+    href: '/manage',
     items: [
       {
         icon: <IconTransferVertical size="1rem" />,
 
-        label: "Transfer Media",
-        href: "/transfer",
+        label: 'Transfer Media',
+        href: '/transfer',
       },
     ],
   },

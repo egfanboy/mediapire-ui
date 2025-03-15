@@ -19,8 +19,7 @@ export type MediaPlayerEvent = {
 type eventListener = (data?: { [key: string]: any }) => void;
 
 class _mediaPlayerEvents {
-  eventListeners: { [key in MediaPlayerEventType]: Set<eventListener> } =
-    {} as any;
+  eventListeners: { [key in MediaPlayerEventType]: Set<eventListener> } = {} as any;
 
   subscribe(type: MediaPlayerEventType, callback: eventListener) {
     if (this.eventListeners[type]) {

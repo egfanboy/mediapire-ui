@@ -1,9 +1,9 @@
-import React from "react";
-import { useMediaStore } from "../state-machine/use-media-store";
-import { Mp3Information } from "./mp3-information/mp3-information";
+import React from 'react';
+import { useMediaStore } from '../state-machine/use-media-store';
+import { Mp3Information } from './mp3-information/mp3-information';
 
 const getTrackInformationComponent = (extention: string) => {
-  if (extention === "mp3") return Mp3Information;
+  if (extention === 'mp3') return Mp3Information;
 
   return null;
 };

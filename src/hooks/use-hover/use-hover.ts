@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from 'react';
 
 export const useHover = <T extends HTMLElement>() => {
   const ref = useRef<T>(null);
@@ -10,14 +10,14 @@ export const useHover = <T extends HTMLElement>() => {
     const handleMouseLeave = () => setIsHovered(false);
 
     if (element) {
-      element.addEventListener("mouseenter", handleMouseEnter);
-      element.addEventListener("mouseleave", handleMouseLeave);
+      element.addEventListener('mouseenter', handleMouseEnter);
+      element.addEventListener('mouseleave', handleMouseLeave);
     }
 
     return () => {
       if (element) {
-        element.removeEventListener("mouseenter", handleMouseEnter);
-        element.removeEventListener("mouseleave", handleMouseLeave);
+        element.removeEventListener('mouseenter', handleMouseEnter);
+        element.removeEventListener('mouseleave', handleMouseLeave);
       }
     };
   }, [ref, ref.current]);

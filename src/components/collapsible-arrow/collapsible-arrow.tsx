@@ -1,8 +1,6 @@
-import React from "react";
-
-import { className } from "../../utils/class-names";
-
-import styles from "./collapsible-arrow.module.css";
+import React from 'react';
+import { className } from '../../utils/class-names';
+import styles from './collapsible-arrow.module.css';
 
 interface collapsibleArrowProps {
   collapsed: boolean;

@@ -1,8 +1,7 @@
-import React, { useState } from "react";
-
-import { Group, Slider, Text, rem } from "@mantine/core";
-import { useMediaStore } from "../state-machine/use-media-store";
-import { mediaPlayerStore } from "../state-machine/media-player-store";
+import React, { useState } from 'react';
+import { Group, rem, Slider, Text } from '@mantine/core';
+import { mediaPlayerStore } from '../state-machine/media-player-store';
+import { useMediaStore } from '../state-machine/use-media-store';
 
 export function TimeControl() {
   const [dragValue, setDragValue] = useState<null | number>(null);
@@ -24,7 +23,7 @@ export function TimeControl() {
 
     const seconds = `${Math.floor(duration % 60)}`;
 
-    return `${timeInMinutes}:${seconds.padStart(2, "0")}`;
+    return `${timeInMinutes}:${seconds.padStart(2, '0')}`;
   };
 
   const value = dragValue !== null ? dragValue : playbackTime;
@@ -32,13 +31,13 @@ export function TimeControl() {
     <Group style={{ flex: 1 }}>
       <Text style={{ width: rem(75) }} fz="sm" c="dimmed">
         {/* take the min between the current time and the length in case the time surpases the total time with rounding */}
-        {formatTime(Math.min(value, currentTrack?.metadata?.length || 0))} /{" "}
+        {formatTime(Math.min(value, currentTrack?.metadata?.length || 0))} /{' '}
         {formatTime(currentTrack?.metadata?.length || 0)}
       </Text>
 
       <Slider
         style={{ flex: 1 }}
-        color={isActive ? "" : "gray.4"}
+        color={isActive ? '' : 'gray.4'}
         label={null}
         size="xs"
         min={0}
