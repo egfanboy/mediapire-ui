@@ -1,9 +1,8 @@
-import React, { useRef, useEffect, useState } from "react";
-import styles from "./infinite-scroll.module.css";
-import useHover from "../../hooks/use-hover/use-hover";
+import React, { useEffect, useRef, useState } from 'react';
+import useHover from '../../hooks/use-hover/use-hover';
+import styles from './infinite-scroll.module.css';
 
-interface infiniteScrollProps {
-  children: React.ReactElement;
+interface infiniteScrollProps extends React.PropsWithChildren<any> {
   onlyScrollOnHover?: boolean;
   onlyScrollForOverflow?: boolean;
 }
@@ -23,39 +22,26 @@ export const InfiniteScroll = ({
 
   useEffect(() => {
     // only verify if we are overflowing based on the prop
-    if (
-      onlyScrollForOverflow &&
-      staticContainerRef.current &&
-      childRef.current
-    ) {
+    if (onlyScrollForOverflow && staticContainerRef.current && childRef.current) {
       const childWidth = childRef.current.getBoundingClientRect().width;
 
-      const containerWidth =
-        staticContainerRef.current.getBoundingClientRect().width;
-      const doesOverflow =
-        childWidth > containerWidth || childWidth === containerWidth;
+      const containerWidth = staticContainerRef.current.getBoundingClientRect().width;
+      const doesOverflow = childWidth > containerWidth || childWidth === containerWidth;
 
       setChildOverflows(doesOverflow);
     }
 
     return () => {};
-  }, [
-    childRef,
-    childRef.current,
-    staticContainerRef,
-    staticContainerRef.current,
-    children,
-  ]);
+  }, [childRef, childRef.current, staticContainerRef, staticContainerRef.current, children]);
 
   const renderContent = () => {
     const renderStatic = () => (
-      <div ref={staticContainerRef} style={{ width: "100%" }}>
-        {React.cloneElement(children, {
-          className: `${children.props.className || ""} ${
-            styles.staticEllipsis
-          }`,
-          ref: childRef,
-        })}
+      <div ref={staticContainerRef} style={{ width: '100%' }}>
+        {children &&
+          React.cloneElement(children, {
+            className: `${children.props.className || ''} ${styles.staticEllipsis}`,
+            ref: childRef,
+          })}
       </div>
     );
 
@@ -66,10 +52,7 @@ export const InfiniteScroll = ({
     if (hovered || !onlyScrollOnHover) {
       return (
         <>
-          <div
-            className={styles.scrollingContainer}
-            style={{ animationDuration: `10s` }}
-          >
+          <div className={styles.scrollingContainer} style={{ animationDuration: `10s` }}>
             {children}
           </div>
 

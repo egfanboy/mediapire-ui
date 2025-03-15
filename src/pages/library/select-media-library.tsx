@@ -52,7 +52,7 @@ export const SelectMediaLibrary = () => {
           onClick={handleMediaTypeClick(mt)}
         >
           <Group mb="md">
-            <Text weight={500}>Media type:</Text>
+            <Text fw={500}>Media type:</Text>
           </Group>
           <Text>{mt}</Text>
         </Card>
