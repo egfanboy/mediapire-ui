@@ -1,9 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { IconDots } from '@tabler/icons-react';
-import { ActionIcon, Checkbox, Menu, ScrollArea, Table } from '@mantine/core';
 import { debounce } from '@/utils/debounce';
 import { MediaTypeEnum } from '../../types/media-type.enum';
-import { getElementFactory, getHeaderFactory } from './media-types/media-type-factory';
+import { Table } from '../table/table';
 import classes from './media-table.module.css';
 
 export enum TableSelectionAction {
@@ -23,6 +21,11 @@ interface TableProps {
   fetchItems: () => Promise<any>;
 }
 
+const getItemValue = (item: MediaItemWithNodeId, key: string): string => {
+  const k = key as keyof MediaItemWithNodeId;
+  return item[k] || item.metadata[k];
+};
+
 export function MediaTable(props: TableProps) {
   const [scrolled, setScrolled] = useState(false);
   const [containerHeight, setcontainerHeight] = useState(100);
@@ -40,25 +43,12 @@ export function MediaTable(props: TableProps) {
     }
   }, [scrollRef.current]);
 
-  const rows = props.items.map((item) => (
-    <Table.Tr key={item.id}>
-      <Table.Td>
-        <Checkbox
-          checked={!!props.selectedItems.includes(item.id)}
-          onChange={() => props.onItemSelected(item.id)}
-        ></Checkbox>
-      </Table.Td>
-      {getElementFactory(props.mediaType)(item).map((el) => el)}
-      <Table.Td></Table.Td>
-    </Table.Tr>
-  ));
-
-  const handleScroll = debounce(async (event: any) => {
-    const scrolledTop = event.target.scrollTop;
-    setScrolled(scrolledTop > 0);
-
+  const calculateScroll = debounce(async (event: any) => {
     if (scrollRef.current) {
-      if (scrollRef.current.scrollHeight - containerHeight - scrolledTop < 200 && !fetching) {
+      if (
+        scrollRef.current.scrollHeight - containerHeight - event.target.scrollTop < 200 &&
+        !fetching
+      ) {
         setFetching(true);
         await props.fetchItems();
         setFetching(false);
@@ -66,54 +56,52 @@ export function MediaTable(props: TableProps) {
     }
   }, 200);
 
+  const handleScroll = (event: any) => {
+    const scrolledTop = event.target.scrollTop;
+    setScrolled(scrolledTop > 0);
+
+    calculateScroll(event);
+  };
+
   return (
     <div
       onScroll={handleScroll}
       ref={scrollRef}
       className={classes.container}
-      style={{ maxHeight: containerHeight }}
+      style={{ height: containerHeight }}
     >
-      <Table className={classes.table}>
-        <Table.Thead
-          className={[classes.tableHeader, ...[scrolled ? classes.scrolled : '']].join(' ')}
-        >
-          <Table.Tr>
-            <Table.Th className={classes.checkboxHeader}>
-              {props.showSelectAll && (
-                <Checkbox
-                  checked={
-                    !!props.items.length && props.items.length === props.selectedItems.length
-                  }
-                  onChange={() => props.onSelectAll && props.onSelectAll()}
-                ></Checkbox>
-              )}
-            </Table.Th>
-            {getHeaderFactory(props.mediaType)()}
-            <Table.Th>
-              <Menu>
-                <Menu.Target>
-                  <ActionIcon variant="transparent" disabled={!props.selectedItems.length}>
-                    <IconDots></IconDots>
-                  </ActionIcon>
-                </Menu.Target>
-
-                <Menu.Dropdown>
-                  <Menu.Item onClick={() => props.onSelectionAction(TableSelectionAction.Download)}>
-                    Download Selection
-                  </Menu.Item>
-                  <Menu.Item onClick={() => props.onSelectionAction(TableSelectionAction.Delete)}>
-                    Delete Selection
-                  </Menu.Item>
-                  <Menu.Item onClick={() => props.onSelectionAction(TableSelectionAction.Play)}>
-                    Play Selection
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            </Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <tbody>{rows}</tbody>
-      </Table>
+      <Table
+        classes={{
+          table: classes.table,
+          header: [classes.tableHeader, ...[scrolled ? classes.scrolled : '']].join(' '),
+          selectAllCheckbox: classes.checkboxHeader,
+        }}
+        columns={[
+          { label: 'Title', key: 'title', getValue: getItemValue },
+          { label: 'Album', key: 'album', getValue: getItemValue },
+          { label: 'Artist', key: 'artist', getValue: getItemValue },
+        ]}
+        items={props.items}
+        onSelectAll={props.onSelectAll}
+        showSelectAll={Boolean(props.showSelectAll)}
+        selectedItems={props.selectedItems}
+        showSelection={true}
+        onItemSelected={props.onItemSelected}
+        bulkActions={[
+          {
+            label: 'Download Selection',
+            handler: () => props.onSelectionAction(TableSelectionAction.Download),
+          },
+          {
+            label: 'Delete Selection',
+            handler: () => props.onSelectionAction(TableSelectionAction.Delete),
+          },
+          {
+            label: 'Play Selection',
+            handler: () => props.onSelectionAction(TableSelectionAction.Play),
+          },
+        ]}
+      ></Table>
     </div>
   );
 }
