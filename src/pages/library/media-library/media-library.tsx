@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { IconAlertCircle, IconRefresh } from '@tabler/icons-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ActionIcon, Box, Flex, Group, Skeleton, Tooltip } from '@mantine/core';
@@ -22,6 +22,10 @@ import { debounce } from '../../../utils/debounce';
 import { filterItem } from './filter-item';
 import styles from './media-library.module.css';
 
+const DEFAULT_SORTING_BY_TYPE: { [key: string]: string } = {
+  mp3: 'asc(album)',
+};
+
 export function MediaLibrary() {
   const library = useMediaStore((s) => s.media);
   const location = useLocation();
@@ -31,17 +35,24 @@ export function MediaLibrary() {
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const [filteredItems, setFilteredItems] = useState<MediaItemWithNodeId[]>([]);
   const [filter, setFilter] = useState('');
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+
+  const initialFetch = useRef(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
+    playbackManager.init();
+
     const fetchMedia = async () => {
+      initialFetch.current = true;
       await fetchLibrary();
-      playbackManager.init();
       setInit(false);
     };
 
-    fetchMedia();
+    if (!initialFetch.current) {
+      fetchMedia();
+    }
 
     return () => {
       playbackManager.destroy();
@@ -77,8 +88,21 @@ export function MediaLibrary() {
 
   const fetchLibrary = async () => {
     try {
-      const media = await mediaService.getMedia(location.state?.mediaType);
-      mediaStore.setState((s) => ({ ...s, media }));
+      if (!pagination || pagination.nextPage) {
+        const mediaType = location.state?.mediaType;
+
+        const page = pagination === null ? 1 : pagination.nextPage;
+        const response = await mediaService.getMedia({
+          mediaType,
+          page,
+          limit: 100,
+          sortBy: DEFAULT_SORTING_BY_TYPE[mediaType],
+        });
+
+        setPagination(response.pagination);
+
+        mediaStore.setState((s) => ({ ...s, media: [...s.media, ...response.results] }));
+      }
     } catch (err: any) {
       navigate(routeError);
     }
@@ -228,6 +252,7 @@ export function MediaLibrary() {
         )}
         showSelectAll
         onSelectAll={handleSelectAll}
+        fetchItems={() => fetchLibrary()}
       ></MediaTable>
     </>
   );

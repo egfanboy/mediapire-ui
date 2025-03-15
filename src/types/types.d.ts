@@ -52,3 +52,14 @@ type Transfer = {
   targetId?: string;
   expiry: string;
 };
+
+type PaginationInfo = {
+  currentPage: int;
+  nextPage: int | null;
+  previousPage: int | null;
+};
+
+type PaginatedResponse<T> = {
+  results: T[];
+  pagination: PaginationInfo;
+};

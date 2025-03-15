@@ -1,4 +1,8 @@
 :root {
+  .container {
+    overflow-y: auto;
+  }
+
   .tableHeader {
     background-color: var(--mantine-color-white);
     position: sticky;

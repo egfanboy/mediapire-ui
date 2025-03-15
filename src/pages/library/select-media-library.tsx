@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { Box, Card, Flex, Group, Skeleton, Text } from "@mantine/core";
-import { mediapireService } from "../../services/mediapire/mediapire";
-import styles from "./select-media-library.module.css";
-import { useNavigateMediaLibrary } from "../../hooks/navigation/use-navigate-media-library";
+import React, { useEffect, useState } from 'react';
+import { Box, Card, Flex, Group, Skeleton, Text } from '@mantine/core';
+import { useNavigateMediaLibrary } from '../../hooks/navigation/use-navigate-media-library';
+import { mediapireService } from '../../services/mediapire/mediapire';
+import styles from './select-media-library.module.css';
 
 export const SelectMediaLibrary = () => {
   const [loading, setLoading] = useState(true);
@@ -25,8 +25,7 @@ export const SelectMediaLibrary = () => {
     f();
   }, []);
 
-  const handleMediaTypeClick = (mediaType: string) => () =>
-    navigateLibraryPage(mediaType);
+  const handleMediaTypeClick = (mediaType: string) => () => navigateLibraryPage(mediaType);
 
   if (loading) {
     return (
@@ -53,7 +52,7 @@ export const SelectMediaLibrary = () => {
           onClick={handleMediaTypeClick(mt)}
         >
           <Group mb="md">
-            <Text weight={500}>Media type:</Text>
+            <Text fw={500}>Media type:</Text>
           </Group>
           <Text>{mt}</Text>
         </Card>

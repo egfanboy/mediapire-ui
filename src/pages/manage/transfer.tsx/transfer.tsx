@@ -1,30 +1,30 @@
-import React, { useEffect, useState } from "react";
-import { mediaService } from "../../../services/media/media-service";
-import { mediapireService } from "../../../services/mediapire/mediapire";
+import React, { useEffect, useState } from 'react';
+import { IconAlertCircle } from '@tabler/icons-react';
 import {
-  Flex,
-  Loader,
-  Title,
-  Text,
-  useMantineTheme,
-  Collapse,
-  Table,
-  Checkbox,
   Button,
+  Checkbox,
+  Collapse,
+  Flex,
   Group,
-} from "@mantine/core";
-import { NodeItem } from "../../../components/node-item/node-item";
-import styles from "./transfer.module.css";
-import { transferService } from "../../../services/transfer/transfer";
-import { notifications } from "@mantine/notifications";
-import { IconAlertCircle } from "@tabler/icons-react";
+  Loader,
+  Table,
+  Text,
+  Title,
+  useMantineTheme,
+} from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { NodeItem } from '../../../components/node-item/node-item';
+import { mediaService } from '../../../services/media/media-service';
+import { mediapireService } from '../../../services/mediapire/mediapire';
+import { transferService } from '../../../services/transfer/transfer';
+import styles from './transfer.module.css';
 
 export const TransferPage = () => {
   const [nodes, setNodes] = useState<MediaHostNode[]>([]);
   // TODO: move to API that can filter content based on a node for now we will fetch all media and filter client side
   const [media, setMedia] = useState<MediaItemWithNodeId[]>([]);
-  const [target, setTarget] = useState("");
-  const [currentNodeSelection, setCurrentNodeSelection] = useState("");
+  const [target, setTarget] = useState('');
+  const [currentNodeSelection, setCurrentNodeSelection] = useState('');
   const [itemsToTransfer, setItemsToTransfer] = useState<{
     [key: string]: string[];
   }>({});
@@ -35,12 +35,8 @@ export const TransferPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [media, nodes] = await Promise.all([
-        mediaService.getMedia(),
-        mediapireService.getNodes(),
-      ]);
+      const nodes = await mediapireService.getNodes();
 
-      setMedia(media);
       setNodes(nodes);
     };
 
@@ -48,38 +44,57 @@ export const TransferPage = () => {
   }, []);
 
   const handleTargetSelect = (id: string) => {
-    setTarget(id);
+    if (target == id) {
+      setTarget('');
+    } else {
+      setTarget(id);
 
-    // if new target has items in the transfer list, clear them
-    if (itemsToTransfer[id]) {
-      const items = { ...itemsToTransfer };
-      delete items[id];
-      setItemsToTransfer({ ...items });
-    }
+      // if new target has items in the transfer list, clear them
+      if (itemsToTransfer[id]) {
+        const items = { ...itemsToTransfer };
+        delete items[id];
+        setItemsToTransfer({ ...items });
+      }
 
-    // node being selected for content is the new target so clear it
-    if (currentNodeSelection === id) {
-      setCurrentNodeSelection("");
+      // node being selected for content is the new target so clear it
+      if (currentNodeSelection === id) {
+        setCurrentNodeSelection('');
+      }
     }
   };
 
-  const handleNodeForSelection = (id: string) => {
+  const handleNodeForSelection = async (id: string) => {
     if (id === currentNodeSelection) {
-      setCurrentNodeSelection("");
+      setCurrentNodeSelection('');
     } else {
+      // TODO: Refactor this to not fetch all pages on initial load
+      let pagination: PaginationInfo = { currentPage: 0, nextPage: 1, previousPage: null };
+      let media: MediaItemWithNodeId[] = [];
+      while (pagination.nextPage !== null) {
+        const response = await mediaService.getMedia({
+          page: pagination.nextPage,
+          nodeId: id,
+          limit: 100,
+        });
+
+        media = [...media, ...response.results];
+
+        pagination = response.pagination;
+      }
+      setMedia(media);
       setCurrentNodeSelection(id);
     }
   };
 
   const getTooltip = (n: MediaHostNode) => {
     if (!target && n.isUp) {
-      return "Please select a target";
+      return 'Please select a target';
     }
     if (target === n.id) {
-      return "Cannot select media from the target";
+      return 'Cannot select media from the target';
     }
 
-    return "";
+    return '';
   };
 
   const getItemCount = () =>
@@ -88,11 +103,7 @@ export const TransferPage = () => {
       return acc;
     }, 0);
 
-  const handleItemSelect = (
-    nodeId: string,
-    mediaId: string,
-    select: boolean
-  ) => {
+  const handleItemSelect = (nodeId: string, mediaId: string, select: boolean) => {
     if (select) {
       setItemsToTransfer({
         ...itemsToTransfer,
@@ -123,17 +134,17 @@ export const TransferPage = () => {
     try {
       await transferService.startTransfer({ targetId: target, inputs });
       notifications.show({
-        title: "Success",
-        message: "Transfer started successfully.",
-        color: "green",
+        title: 'Success',
+        message: 'Transfer started successfully.',
+        color: 'green',
         autoClose: 2000,
       });
     } catch (e) {
       notifications.show({
-        title: "Error",
-        message: "Failed to start transfer.",
+        title: 'Error',
+        message: 'Failed to start transfer.',
         autoClose: 5000,
-        color: "red",
+        color: 'red',
         icon: <IconAlertCircle></IconAlertCircle>,
       });
     }
@@ -142,7 +153,11 @@ export const TransferPage = () => {
   };
 
   if (!nodes.length) {
-    return <Loader />;
+    return (
+      <Group style={{ height: '100dvh' }} align="center" justify="center">
+        <Loader />
+      </Group>
+    );
   }
   return (
     <Flex direction="column" gap="md">
@@ -181,10 +196,7 @@ export const TransferPage = () => {
           ></NodeItem>
         ))}
       </Flex>
-      <Collapse
-        className={styles.selectTableContainer}
-        in={currentNodeSelection !== ""}
-      >
+      <Collapse className={styles.selectTableContainer} in={currentNodeSelection !== ''}>
         <Table>
           <thead>
             <tr>
@@ -194,22 +206,18 @@ export const TransferPage = () => {
             </tr>
           </thead>
           <tbody>
-            {media
-              .filter((m) => m.nodeId === currentNodeSelection)
-              .map((m) => (
-                <tr key={m.nodeId + m.id}>
-                  <td>
-                    <Checkbox
-                      checked={!!itemsToTransfer[m.nodeId]?.includes(m.id)}
-                      onChange={(v) =>
-                        handleItemSelect(m.nodeId, m.id, v.target.checked)
-                      }
-                    />
-                  </td>
-                  <td>{m.name}</td>
-                  <td>{m.extension}</td>
-                </tr>
-              ))}
+            {media.map((m) => (
+              <tr key={m.nodeId + m.id}>
+                <td>
+                  <Checkbox
+                    checked={!!itemsToTransfer[m.nodeId]?.includes(m.id)}
+                    onChange={(v) => handleItemSelect(m.nodeId, m.id, v.target.checked)}
+                  />
+                </td>
+                <td>{m.name}</td>
+                <td>{m.extension}</td>
+              </tr>
+            ))}
           </tbody>
         </Table>
       </Collapse>
