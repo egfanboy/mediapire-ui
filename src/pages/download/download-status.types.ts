@@ -1,13 +1,13 @@
 export type DownloadInfo = {
   id: string;
   status:
-    | "complete"
-    | "in_progress"
-    | "pending"
-    | "processing_complete"
-    | "complete"
-    | "failed"
-    | "expired";
+    | 'complete'
+    | 'in_progress'
+    | 'pending'
+    | 'processing_complete'
+    | 'complete'
+    | 'failed'
+    | 'expired';
 
   failureReason: string;
   targetId: string;

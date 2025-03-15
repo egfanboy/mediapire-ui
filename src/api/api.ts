@@ -1,4 +1,4 @@
-import { mediapireService } from "../services/mediapire/mediapire";
+import { mediapireService } from '../services/mediapire/mediapire';
 
 class ApiGateway {
   private get apiHost(): string {
@@ -13,7 +13,7 @@ class ApiGateway {
     const config = mediapireService.getManagerConfig();
 
     if (config === null) {
-      throw Error("No mediapire config found");
+      throw Error('No mediapire config found');
     }
 
     return config;
@@ -21,7 +21,7 @@ class ApiGateway {
 
   private async request(url: string, options: RequestInit): Promise<Response> {
     const baseHeaders = {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     };
 
     if (options.body) {
@@ -47,23 +47,23 @@ class ApiGateway {
   }
 
   get(url: string, options = {}) {
-    return this.request(url, { ...options, method: "GET" });
+    return this.request(url, { ...options, method: 'GET' });
   }
 
   post(url: string, options = {}) {
-    return this.request(url, { ...options, method: "POST" });
+    return this.request(url, { ...options, method: 'POST' });
   }
 
   patch(url: string, options = {}) {
-    return this.request(url, { ...options, method: "PATCH" });
+    return this.request(url, { ...options, method: 'PATCH' });
   }
 
   delete(url: string, options = {}) {
-    return this.request(url, { ...options, method: "DELETE" });
+    return this.request(url, { ...options, method: 'DELETE' });
   }
 
   put(url: string, options = {}) {
-    return this.request(url, { ...options, method: "PUT" });
+    return this.request(url, { ...options, method: 'PUT' });
   }
 
   buildUrl(url: string): string {

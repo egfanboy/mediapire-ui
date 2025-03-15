@@ -3,7 +3,7 @@ export interface MediaPlayerState {
   muted: boolean;
   paused: boolean;
   shuffling: boolean;
-  repeatMode: "none" | "all" | "one";
+  repeatMode: 'none' | 'all' | 'one';
   currentTrack: null | { [key: string]: any };
   playbackTime: number;
 }
@@ -44,7 +44,7 @@ export const mediaPlayerStore = createStore({
   muted: false,
   paused: false,
   shuffling: false,
-  repeatMode: "none",
+  repeatMode: 'none',
   currentTrack: null,
   playbackTime: 0,
 });

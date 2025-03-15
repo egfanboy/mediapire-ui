@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useRef } from "react";
-
-import { useMediaStore } from "../../state-machine/use-media-store";
-import { mediaPlayerStore } from "../../state-machine/media-player-store";
+import React, { useCallback, useEffect, useRef } from 'react';
 import mediaPlayerEvents, {
   MediaPlayerEventType,
-} from "../../../../events/media-player/media-player.events";
-import { mediaService } from "../../../../services/media/media-service";
+} from '../../../../events/media-player/media-player.events';
+import { mediaService } from '../../../../services/media/media-service';
+import { mediaPlayerStore } from '../../state-machine/media-player-store';
+import { useMediaStore } from '../../state-machine/use-media-store';
 
 export const AudioControlElement = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -64,13 +63,13 @@ export const AudioControlElement = () => {
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.addEventListener("timeupdate", handleSongTimeUpdate);
-      audioRef.current.addEventListener("ended", handleSongEnd);
+      audioRef.current.addEventListener('timeupdate', handleSongTimeUpdate);
+      audioRef.current.addEventListener('ended', handleSongEnd);
       audioRef.current.controls = false;
     }
     return () => {
-      audioRef.current?.removeEventListener("timeupdate", handleSongTimeUpdate);
-      audioRef.current?.removeEventListener("ended", handleSongEnd);
+      audioRef.current?.removeEventListener('timeupdate', handleSongTimeUpdate);
+      audioRef.current?.removeEventListener('ended', handleSongEnd);
     };
   }, [audioRef.current]);
 
@@ -83,10 +82,7 @@ export const AudioControlElement = () => {
       const load = async () => {
         if (audioRef.current) {
           // Need to get blob and create a dynamic URL since backend does not support ranging
-          const audioBytes = await mediaService.streamMedia(
-            currentTrack.id,
-            currentTrack.nodeId
-          );
+          const audioBytes = await mediaService.streamMedia(currentTrack.id, currentTrack.nodeId);
 
           audioRef.current.src = URL.createObjectURL(audioBytes);
           audioRef.current.play();

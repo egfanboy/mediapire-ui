@@ -1,6 +1,6 @@
-import api from "../../api/api";
+import api from '../../api/api';
 
-const localStorageKey = "mediapire-ui-manager";
+const localStorageKey = 'mediapire-ui-manager';
 
 type MediapireSettings = {
   fileTypes: string[];
@@ -27,15 +27,14 @@ const getManagerConfig = (): MediapireManageConfig | null => {
 const saveManagerConfig = (config: MediapireManageConfig): void =>
   localStorage.setItem(localStorageKey, JSON.stringify(config));
 
-const deleteManagerConfig = (): void =>
-  localStorage.removeItem(localStorageKey);
+const deleteManagerConfig = (): void => localStorage.removeItem(localStorageKey);
 
 const getSettings = (): Promise<MediapireSettings> => {
-  return api.get("/api/v1/settings").then((r) => r.json());
+  return api.get('/api/v1/settings').then((r) => r.json());
 };
 
 const getNodes = (): Promise<MediaHostNode[]> => {
-  return api.get("/api/v1/nodes").then((r) => r.json());
+  return api.get('/api/v1/nodes').then((r) => r.json());
 };
 
 export const mediapireService: MediapireService = {
