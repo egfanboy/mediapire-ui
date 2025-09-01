@@ -13,6 +13,7 @@ import { mediapireService } from './services/mediapire/mediapire';
 import {
   libraryBasePath,
   routeDownloadStatus,
+  routeEdit,
   routeError,
   routeManage,
   routeMediaLibrary,
@@ -21,6 +22,7 @@ import {
 
 import '@mantine/core/styles.css';
 
+import { EditPage } from './pages/edit/edit';
 import styles from './App.module.css';
 
 const NO_NAV_ROUTES = [routeSetup];
@@ -103,6 +105,7 @@ export function App() {
           <Route path={routeError} element={<ErrorPage />} />
           <Route path={routeManage} element={<ManagePage />} />
           <Route path={routeDownloadStatus} element={<DownloadStatusPage />} />
+          <Route path={routeEdit} element={<EditPage />} />
         </Routes>
       </AppShell.Main>
     </AppShell>

@@ -8,8 +8,15 @@ type GetMediaParams = {
   nodeId?: string;
 };
 
+export type UpdateMediaItem = {
+  mediaId: string;
+  nodeId: string;
+  change: { [key: string]: any };
+};
+
 interface MediaService {
   getMedia(p: GetMediaParams): Promise<PaginatedResponse<MediaItemWithNodeId>>;
+  getMediaByIds(mediaIds: string[]): Promise<MediaItemWithNodeId[]>;
   downloadMedia(body: DownloadMediaRequest): Promise<any>;
   getDownload(downloadId: string): Promise<any>;
   getDownloadContent(downloadId: string): Promise<any>;
@@ -17,6 +24,7 @@ interface MediaService {
   streamMedia(mediaId: string, nodeId: string): Promise<any>;
   streamMediaStatic(mediaId: string, nodeId: string): string;
   getMediaArtStatic(mediaId: string, nodeId: string): string;
+  updateMedia(changes: UpdateMediaItem[]): Promise<any>;
 }
 
 const baseMediaUrl = '/api/v1/media';
@@ -49,6 +57,9 @@ const getMedia = ({
   return api.get(url).then((r) => r.json());
 };
 
+const getMediaByIds = (mediaIds: string[]): Promise<MediaItemWithNodeId[]> =>
+  api.get(`${baseMediaUrl}?mediaIds=${mediaIds.join(',')}`).then((r) => r.json());
+
 const downloadMedia = (body: DownloadMediaRequest): Promise<any> => {
   return api.post('/api/v1/media/download', { body }).then((r) => r.json());
 };
@@ -72,8 +83,16 @@ const streamMediaStatic = (mediaId: string, nodeId: string): string =>
 const getMediaArtStatic = (mediaId: string, nodeId: string) =>
   api.buildUrl(`${baseMediaUrl}/${mediaId}/art?nodeId=${nodeId}`);
 
+const updateMedia = (changes: UpdateMediaItem[]): Promise<any> => {
+  const body = new FormData();
+
+  body.append('data', JSON.stringify({ action: 'update', changes }));
+  return api.post('/api/v1/changesets', { body }).then((r) => r.json());
+};
+
 export const mediaService: MediaService = {
   getMedia,
+  getMediaByIds,
   downloadMedia,
   getDownload,
   getDownloadContent,
@@ -81,4 +100,5 @@ export const mediaService: MediaService = {
   streamMedia,
   getMediaArtStatic,
   streamMediaStatic,
+  updateMedia,
 };
