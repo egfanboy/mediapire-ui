@@ -21,6 +21,7 @@ import {
 } from './utils/constants';
 
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 
 import { EditPage } from './pages/edit/edit';
 import styles from './App.module.css';

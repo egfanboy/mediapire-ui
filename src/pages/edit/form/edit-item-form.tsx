@@ -1,8 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { Button, Flex, Group, MantineComponent, NumberInput, TextInput } from '@mantine/core';
 import { isInRange, isNotEmpty, useForm, UseFormInput } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
+import { usePollCompletion } from '@/hooks/use-poll-completion/use-poll-completion';
+import { changesetService } from '@/services/changeset/changeset-service';
 import { mediaService } from '@/services/media/media-service';
 
 const NUMBER_FIELDS = ['trackOf', 'trackIndex'];
@@ -13,6 +15,44 @@ interface EditItemFormProps {
 
 export const EditItemForm = ({ item }: EditItemFormProps) => {
   const formConfig = useMemo(() => getFormConfig(item), [item]);
+  const [changesetId, setChangesetId] = useState<null | string>(null);
+
+  usePollCompletion({
+    queryCompletion: async () => {
+      if (!changesetId) return { complete: false };
+      try {
+        const changeset = await changesetService.getChangeset(changesetId);
+
+        if (changeset.status === 'complete') return { complete: true, success: true };
+        if (changeset.status === 'failed') return { complete: true };
+
+        return { complete: false };
+      } catch (e) {
+        return { complete: true, success: false };
+      }
+    },
+    onComplete(success) {
+      if (success) {
+        notifications.show({
+          title: 'Updated',
+          message: 'Successfully updated item',
+          autoClose: 2000,
+        });
+      } else {
+        notifications.show({
+          title: 'Failed to edit',
+          message: 'An error occured when trying to edit this item.',
+          autoClose: 5000,
+          color: 'red',
+          icon: <IconAlertCircle></IconAlertCircle>,
+        });
+      }
+
+      setChangesetId(null);
+    },
+    enabled: !!changesetId,
+  });
+
   if (!formConfig) return <div>Cannot edit item with extenstion {item.extension}</div>;
   const form = useForm(formConfig);
 
@@ -40,8 +80,10 @@ export const EditItemForm = ({ item }: EditItemFormProps) => {
     ];
 
     try {
-      // TODO: poll for success
       const changeset = await mediaService.updateMedia(changes);
+      setChangesetId(changeset.id);
+
+      form.resetTouched();
     } catch (e) {
       notifications.show({
         title: 'Failed to edit',
@@ -76,7 +118,12 @@ export const EditItemForm = ({ item }: EditItemFormProps) => {
           );
         })}
         <Group>
-          <Button mt="md" disabled={!form.isValid() || !form.isTouched()} type="submit">
+          <Button
+            mt="md"
+            disabled={!form.isValid() || !form.isTouched()}
+            loading={!!changesetId}
+            type="submit"
+          >
             Save
           </Button>
         </Group>
