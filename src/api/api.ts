@@ -19,16 +19,28 @@ class ApiGateway {
     return config;
   }
 
+  private isJsonPayload(options: RequestInit): boolean {
+    if (!options.body) return true;
+
+    if (options.body) {
+      return !(options.body instanceof FormData);
+    }
+    // assume we are making a JSON request
+    return true;
+  }
+
   private async request(url: string, options: RequestInit): Promise<Response> {
-    const baseHeaders = {
-      'Content-Type': 'application/json',
-    };
+    const isJsonPayload = this.isJsonPayload(options);
+    let baseHeaders: { [key: string]: string } = {};
+
+    if (isJsonPayload) {
+      baseHeaders['Content-Type'] = 'application/json';
+    }
 
     if (options.body) {
       options = {
         ...options,
-        // body: shouldStringify ? JSON.stringify(body) : body,
-        body: JSON.stringify(options.body),
+        body: isJsonPayload ? JSON.stringify(options.body) : options.body,
       };
     }
 

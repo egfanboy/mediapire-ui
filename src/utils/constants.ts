@@ -5,3 +5,4 @@ export const routeSetup = '/setup';
 export const routeError = '/error';
 export const routeDownloadStatus = '/downloads/:id';
 export const routeManage = '/manage/:slug';
+export const routeEdit = `${routeMediaLibrary}/edit`;
