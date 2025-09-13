@@ -12,6 +12,7 @@ type column<T> = {
 
 interface TableProps<T extends withId> {
   items: T[];
+  filteredItems: T[];
   showSelection: boolean;
   selectedItems: string[];
   showSelectAll: boolean;
@@ -25,11 +26,13 @@ interface TableProps<T extends withId> {
     body?: string;
     selectAllCheckbox?: string;
   };
+  stickyHeader?: boolean;
 }
 
 export const Table = <T extends withId>({
   classes,
   items,
+  filteredItems,
   showSelectAll,
   selectedItems,
   onSelectAll,
@@ -37,6 +40,7 @@ export const Table = <T extends withId>({
   columns,
   showSelection,
   onItemSelected,
+  stickyHeader,
 }: TableProps<T>) => {
   const ba = bulkActions || [];
   const renderRow = useCallback(
@@ -67,7 +71,7 @@ export const Table = <T extends withId>({
   );
 
   return (
-    <MTable className={classes?.table}>
+    <MTable className={classes?.table} stickyHeader={!!stickyHeader}>
       <MTable.Thead className={classes?.header}>
         <MTable.Tr>
           <MTable.Th className={classes?.selectAllCheckbox}>
@@ -79,7 +83,7 @@ export const Table = <T extends withId>({
             )}
           </MTable.Th>
           {columns.map((column: any) => (
-            <MTable.Th>{column.label}</MTable.Th>
+            <MTable.Th key={column.label}>{column.label}</MTable.Th>
           ))}
           <MTable.Th>
             {ba.length > 0 && (
@@ -102,7 +106,7 @@ export const Table = <T extends withId>({
           </MTable.Th>
         </MTable.Tr>
       </MTable.Thead>
-      <MTable.Tbody>{items.map((row) => renderRow(row))}</MTable.Tbody>
+      <MTable.Tbody>{filteredItems.map((row) => renderRow(row))}</MTable.Tbody>
     </MTable>
   );
 };
