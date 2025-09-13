@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { IconAlertCircle, IconRefresh } from '@tabler/icons-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ActionIcon, Box, Flex, Group, Skeleton, Tooltip } from '@mantine/core';
@@ -25,6 +25,7 @@ import styles from './media-library.module.css';
 const DEFAULT_SORTING_BY_TYPE: { [key: string]: string } = {
   mp3: 'asc(album)',
 };
+const PAGE_SIZE = 50;
 
 export function MediaLibrary() {
   const library = useMediaStore((s) => s.media);
@@ -35,7 +36,7 @@ export function MediaLibrary() {
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const [filteredItems, setFilteredItems] = useState<MediaItemWithNodeId[]>([]);
   const [filter, setFilter] = useState('');
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+  const [page, setPage] = useState(1);
 
   const initialFetch = useRef(false);
 
@@ -81,28 +82,42 @@ export function MediaLibrary() {
   const handleSelectAll = () => {
     if (filteredItems.length === selectedItems.length) {
       setSelectedItems([]);
+
+      return;
     } else {
+      if (filter) {
+        // All filtered items are currently selected so remove them from the selected array
+        if (filteredItems.every((item) => selectedItems.includes(item.id))) {
+          setSelectedItems(
+            selectedItems.filter((id) => !filteredItems.map(({ id }) => id).includes(id))
+          );
+
+          return;
+        }
+        // Some filtered items are not selected so add them
+        else {
+          const uniqueItemIds = new Set([...selectedItems, ...filteredItems.map(({ id }) => id)]);
+
+          setSelectedItems([...uniqueItemIds]);
+          return;
+        }
+      }
+
       setSelectedItems(filteredItems.map((item) => item.id));
+
+      return;
     }
   };
 
   const fetchLibrary = async () => {
     try {
-      if (!pagination || pagination.nextPage) {
-        const mediaType = location.state?.mediaType;
+      const mediaType = location.state?.mediaType;
+      const response = await mediaService.getMedia({
+        mediaType,
+        sortBy: DEFAULT_SORTING_BY_TYPE[mediaType],
+      });
 
-        const page = pagination === null ? 1 : pagination.nextPage;
-        const response = await mediaService.getMedia({
-          mediaType,
-          page,
-          limit: 100,
-          sortBy: DEFAULT_SORTING_BY_TYPE[mediaType],
-        });
-
-        setPagination(response.pagination);
-
-        mediaStore.setState((s) => ({ ...s, media: [...s.media, ...response.results] }));
-      }
+      mediaStore.setState((s) => ({ ...s, media: response.results }));
     } catch (err: any) {
       navigate(routeError);
     }
@@ -204,6 +219,10 @@ export function MediaLibrary() {
     }
   }
 
+  const paginatedItems = useMemo(() => {
+    return filteredItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  }, [filteredItems, page]);
+
   if (init) {
     return (
       <Box>
@@ -243,16 +262,20 @@ export function MediaLibrary() {
       </Flex>
 
       <MediaTable
-        items={filteredItems}
+        items={library}
+        filteredItems={paginatedItems}
         mediaType={location.state?.mediaType}
         onItemSelected={handleSelectedItem}
         onSelectionAction={handleSelectionAction}
-        selectedItems={selectedItems.filter((si) =>
-          filteredItems.map((item) => item.id).includes(si)
-        )}
+        selectedItems={selectedItems}
         showSelectAll
         onSelectAll={handleSelectAll}
-        fetchItems={() => fetchLibrary()}
+        filter={filter}
+        pagination={{
+          total: Math.ceil(filteredItems.length / PAGE_SIZE),
+          current: page,
+          setPage,
+        }}
       ></MediaTable>
     </>
   );

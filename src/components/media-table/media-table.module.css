@@ -3,18 +3,6 @@
     overflow-y: auto;
   }
 
-  .tableHeader {
-    background-color: var(--mantine-color-white);
-    position: sticky;
-    top: 0;
-    /* Need to provide z-index to be above the checkboxes */
-    z-index: 2;
-  }
-
-  .scrolled {
-    box-shadow: var(--mantine-shadow-sm);
-  }
-
   .checkboxHeader {
     width: 1rem;
   }

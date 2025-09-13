@@ -3,7 +3,7 @@ import api from '../../api/api';
 type GetMediaParams = {
   sortBy?: string;
   mediaType?: string;
-  page: number;
+  page?: number;
   limit?: number;
   nodeId?: string;
 };
@@ -36,24 +36,19 @@ const getMedia = ({
   sortBy,
   nodeId,
 }: GetMediaParams): Promise<PaginatedResponse<MediaItemWithNodeId>> => {
-  let url = `${baseMediaUrl}?page=${page}`;
+  let url = baseMediaUrl;
 
-  if (limit) {
-    url = `${url}&limit=${limit}`;
+  const queryParams = new URLSearchParams();
+
+  if (page) queryParams.set('page', page.toString());
+  if (limit) queryParams.set('limit', limit.toString());
+  if (mediaType) queryParams.set('mediaType', mediaType);
+  if (sortBy) queryParams.set('sortBy', sortBy);
+  if (nodeId) queryParams.set('nodeId', nodeId);
+
+  if (queryParams.size) {
+    url = `${url}?${queryParams}`;
   }
-
-  if (mediaType) {
-    url = `${url}&mediaType=${mediaType}`;
-  }
-
-  if (sortBy) {
-    url = `${url}&sortBy=${sortBy}`;
-  }
-
-  if (nodeId) {
-    url = `${url}&nodeId=${nodeId}`;
-  }
-
   return api.get(url).then((r) => r.json());
 };
 
