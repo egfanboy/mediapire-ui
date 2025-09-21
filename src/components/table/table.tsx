@@ -1,8 +1,8 @@
-import React, { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { IconDots } from '@tabler/icons-react';
 import { ActionIcon, Checkbox, Menu, Table as MTable } from '@mantine/core';
 
-type withId = { id: string };
+type withId = { id: string; actionCell?: any };
 
 type column<T> = {
   getValue?: (item: T, key: string) => string;
@@ -17,6 +17,7 @@ interface TableProps<T extends withId> {
   selectedItems: string[];
   showSelectAll: boolean;
   onSelectAll?: () => any;
+  itemActions?: boolean;
   bulkActions?: { label: string; handler: (...args: any[]) => void }[];
   columns: column<T>[];
   onItemSelected: (id: string) => void;
@@ -41,6 +42,7 @@ export const Table = <T extends withId>({
   showSelection,
   onItemSelected,
   stickyHeader,
+  itemActions = false,
 }: TableProps<T>) => {
   const ba = bulkActions || [];
   const renderRow = useCallback(
@@ -63,11 +65,17 @@ export const Table = <T extends withId>({
           })}
 
           {/* Adds a padding element if the table supports bulk actions */}
-          {ba.length > 0 && <MTable.Td></MTable.Td>}
+          {ba.length > 0 ||
+            (itemActions && <MTable.Td>{item.actionCell ? item.actionCell : null}</MTable.Td>)}
         </MTable.Tr>
       );
     },
     [selectedItems, showSelection, columns, ba]
+  );
+
+  const rows = useMemo(
+    () => filteredItems.map((row) => renderRow(row)),
+    [renderRow, filteredItems]
   );
 
   return (
@@ -106,7 +114,7 @@ export const Table = <T extends withId>({
           </MTable.Th>
         </MTable.Tr>
       </MTable.Thead>
-      <MTable.Tbody>{filteredItems.map((row) => renderRow(row))}</MTable.Tbody>
+      <MTable.Tbody>{rows}</MTable.Tbody>
     </MTable>
   );
 };
