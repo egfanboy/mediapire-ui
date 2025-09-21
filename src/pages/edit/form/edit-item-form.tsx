@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { IconAlertCircle } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Flex, Group, MantineComponent, NumberInput, TextInput } from '@mantine/core';
 import { isInRange, isNotEmpty, useForm, UseFormInput } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -16,6 +17,7 @@ interface EditItemFormProps {
 export const EditItemForm = ({ item }: EditItemFormProps) => {
   const formConfig = useMemo(() => getFormConfig(item), [item]);
   const [changesetId, setChangesetId] = useState<null | string>(null);
+  const navigate = useNavigate();
 
   usePollCompletion({
     queryCompletion: async () => {
@@ -118,6 +120,9 @@ export const EditItemForm = ({ item }: EditItemFormProps) => {
           );
         })}
         <Group>
+          <Button mt="md" variant="subtle" onClick={() => navigate(-1)}>
+            Cancel
+          </Button>
           <Button
             mt="md"
             disabled={!form.isValid() || !form.isTouched()}

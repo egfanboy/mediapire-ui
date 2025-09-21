@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Flex, Group, Table as MantineTable, Pagination } from '@mantine/core';
-import { filterItem } from '@/pages/library/media-library/filter-item';
+import { useEffect, useRef, useState } from 'react';
+import { IconEdit } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
+import { ActionIcon, Flex, Group, Table as MantineTable, Pagination } from '@mantine/core';
+import { LIBRARY_MEDIA_ID_PARAM, routeEdit } from '@/utils/constants';
 import { MediaTypeEnum } from '../../types/media-type.enum';
 import { Table } from '../table/table';
 import classes from './media-table.module.css';
@@ -37,7 +39,7 @@ const getItemValue = (item: MediaItemWithNodeId, key: string): string => {
 export function MediaTable({ pagination, items, filteredItems, ...props }: TableProps) {
   const [containerHeight, setContainerHeight] = useState(100);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [page, setPage] = useState(1);
+  const navigate = useNavigate();
 
   // calculates the max height of the container to be a percentage of the parent element (main)
   useEffect(() => {
@@ -65,7 +67,23 @@ export function MediaTable({ pagination, items, filteredItems, ...props }: Table
             { label: 'Artist', key: 'artist', getValue: getItemValue },
           ]}
           items={items}
-          filteredItems={filteredItems}
+          filteredItems={filteredItems.map((f) => ({
+            ...f,
+            actionCell: (
+              <ActionIcon
+                variant="outline"
+                color=""
+                size="sm"
+                onClick={() =>
+                  navigate(
+                    `${routeEdit.replace(LIBRARY_MEDIA_ID_PARAM, props.mediaType)}?ids=${f.id}`
+                  )
+                }
+              >
+                <IconEdit></IconEdit>
+              </ActionIcon>
+            ),
+          }))}
           onSelectAll={props.onSelectAll}
           showSelectAll={Boolean(props.showSelectAll)}
           selectedItems={props.selectedItems}
