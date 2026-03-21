@@ -107,11 +107,7 @@ export const MediaControls = () => {
         color={theme.primaryColor}
         size="lg"
         variant="subtle"
-        onClick={() =>
-          mediaPlayerEvents.dispatchEvent({
-            type: MediaPlayerEventType.Next,
-          })
-        }
+        onClick={makeEventFunction(MediaPlayerEventType.Next)}
       >
         <IconPlayerSkipForwardFilled></IconPlayerSkipForwardFilled>
       </ActionIcon>

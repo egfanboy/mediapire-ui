@@ -1,5 +1,8 @@
+import { StartPlaybackSessionPayload } from '@/services/playback/playback';
+
 export interface MediaState {
   media: MediaItemWithNodeId[];
+  playbackSource: StartPlaybackSessionPayload | null;
 }
 
 const createStore = (initialState: MediaState) => {
@@ -32,4 +35,5 @@ const createStore = (initialState: MediaState) => {
 
 export const mediaStore = createStore({
   media: [],
+  playbackSource: null,
 });
