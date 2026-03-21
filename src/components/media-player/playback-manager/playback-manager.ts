@@ -1,9 +1,14 @@
+import {
+  PlaybackQueueItem,
+  PlaybackRepeatMode,
+  playbackService,
+} from '@/services/playback/playback';
+import { setPlaybackSessionState } from '@/services/playback/playback-session-store';
 import mediaPlayerEvents, {
   MediaPlayerEventType,
 } from '../../../events/media-player/media-player.events';
 import { mediaStore } from '../../../stores/media/media-store';
 import { mediaPlayerStore } from '../state-machine/media-player-store';
-import { shuffleArray } from './utils/shuffle-array';
 
 // time tolerance in seconds when handling the previous media event
 const PREVIOUS_TIME_TOLERANCE = 3;
@@ -15,6 +20,7 @@ const MUTED_DEFAULT = 'false';
 const localStoragePlaybackStateKey = 'mediapire_media_playback_state';
 const localStorageVolumeStateKey = 'mediapire_playback_volume_state';
 const localStorageVolumeMutedKey = 'mediapire_playback_volume_muted';
+const PLAYBACK_DEFAULTS = '{"shuffling":false, "repeatMode": "none"}';
 
 class _playbackManager {
   constructor() {
@@ -45,11 +51,6 @@ class _playbackManager {
   }
 
   eventHandlerMapping = {};
-  media: any[] = [];
-
-  shuffledMedia = [];
-
-  currentMediaId = '';
 
   init() {
     for (const key in this.eventHandlerMapping) {
@@ -65,95 +66,61 @@ class _playbackManager {
       // @ts-ignore
       mediaPlayerEvents.unsubscribe(key as any, this.eventHandlerMapping[key]);
     }
-
-    this.media = [];
-    this.shuffledMedia = [];
-    this.currentMediaId = '';
   }
 
-  toggleRepeatMode() {
+  getNextRepeatMode(): 'none' | 'all' | 'one' {
     const currentState = mediaPlayerStore.getSnapshot();
-
     const { repeatMode } = currentState;
-    let newRepeatMode = '';
+
     if (repeatMode === 'none') {
-      newRepeatMode = 'all';
+      return 'all';
     }
+
     if (repeatMode === 'all') {
-      newRepeatMode = 'one';
+      return 'one';
     }
 
-    if (repeatMode === 'one') {
-      newRepeatMode = 'none';
+    return 'none';
+  }
+
+  mapRepeatModeToApi(repeatMode: 'none' | 'all' | 'one'): PlaybackRepeatMode {
+    if (repeatMode === 'none') {
+      return 'off';
     }
 
-    if (newRepeatMode) {
-      mediaPlayerStore.setState((state) => ({
-        ...state,
-        repeatMode: newRepeatMode as any,
-      }));
+    return repeatMode;
+  }
 
-      this.updatePlaybackLocalStorage();
-    }
+  applyPlaybackSession = (session: Awaited<ReturnType<typeof playbackService.getSession>>) => {
+    setPlaybackSessionState(session);
+    this.updatePlaybackLocalStorage();
+  };
+
+  toggleRepeatMode() {
+    const nextRepeatMode = this.getNextRepeatMode();
+
+    void playbackService
+      .submitCommand('set_repeat', {
+        mode: this.mapRepeatModeToApi(nextRepeatMode),
+      })
+      .then((session) => {
+        this.applyPlaybackSession(session);
+      });
   }
 
   handleNext() {
-    const targetList = this.shuffledMedia.length ? this.shuffledMedia : this.media;
-
-    const currentMediaIndex = targetList.findIndex((m) => m.id === this.currentMediaId);
-
-    if (currentMediaIndex !== -1) {
-      const isLast = currentMediaIndex === targetList.length - 1;
-
-      const nextTrack = targetList[isLast ? 0 : currentMediaIndex + 1];
-
-      // TODO: remove once a better way to handle thumbnails is found
-      // if the track doesn't change just set the playback time to 0
-      if (this.currentMediaId === nextTrack.id) {
-        mediaPlayerStore.setState((state) => ({
-          ...state,
-          playbackTime: 0,
-        }));
-      }
-
-      if (this.currentMediaId !== nextTrack.id) {
-        this.currentMediaId = nextTrack.id;
-        mediaPlayerStore.setState((state) => ({
-          ...state,
-          currentTrack: nextTrack,
-          playbackTime: 0,
-        }));
-      }
-    }
+    void playbackService.submitCommand('next').then((session) => {
+      this.applyPlaybackSession(session);
+    });
   }
 
   handlePrevious() {
     const currentState = mediaPlayerStore.getSnapshot();
+
     if (currentState.playbackTime < PREVIOUS_TIME_TOLERANCE) {
-      const targetList = this.shuffledMedia.length ? this.shuffledMedia : this.media;
-      const currentMediaIndex = targetList.findIndex((m) => m.id === this.currentMediaId);
-
-      const isFirstItem = currentMediaIndex === 0;
-
-      const nextIndex = isFirstItem
-        ? this.media.length - 1
-        : /**
-           * Math.max is used here to cover for the scenario where currentIndex is -1 which
-           * occurs when the item was most likely removed from the library.
-           * Just restarts at the begining of the library (0 index)
-           */
-          Math.max(currentMediaIndex - 1, 0);
-
-      const nextTrack = targetList[nextIndex];
-
-      if (nextTrack) {
-        this.currentMediaId = nextTrack.id;
-        mediaPlayerStore.setState((state) => ({
-          ...state,
-          playbackTime: 0,
-          currentTrack: nextTrack,
-        }));
-      }
+      void playbackService.submitCommand('previous').then((session) => {
+        this.applyPlaybackSession(session);
+      });
     } else {
       // keeping the same item, put the playback time to 0
       mediaPlayerStore.setState((state) => ({
@@ -164,20 +131,36 @@ class _playbackManager {
   }
 
   handlePlay() {
-    if (this.currentMediaId) {
+    const currentState = mediaPlayerStore.getSnapshot();
+
+    if (currentState.currentTrack) {
       mediaPlayerStore.setState((state) => ({
         ...state,
         paused: false,
       }));
     } else {
-      /*
-       ** gets the current media from the state and starts it.
-       ** this assumes the user presses play without picking any media
-       */
-
       const mediaState = mediaStore.getSnapshot();
-      if (mediaState.media.length) {
-        this.setMedia({ media: mediaState.media, autoplay: true });
+
+      if (mediaState.playbackSource) {
+        void playbackService
+          .startSession({
+            ...mediaState.playbackSource,
+            shuffleEnabled: currentState.shuffling,
+            repeatMode: this.mapRepeatModeToApi(currentState.repeatMode),
+          })
+          .then((session) => {
+            this.applyPlaybackSession(session);
+
+            if (session.currentMedia) {
+              mediaPlayerStore.setState((state) => ({
+                ...state,
+                paused: false,
+                playbackTime: 0,
+              }));
+            }
+          });
+      } else if (mediaState.media.length) {
+        void this.setMedia({ media: mediaState.media, autoplay: true });
       }
     }
   }
@@ -189,61 +172,46 @@ class _playbackManager {
     }));
   }
 
-  setMedia(data?: { [key: string]: any }) {
-    if (data) {
-      this.media = data.media;
+  async setMedia(data?: { [key: string]: any }) {
+    if (!data?.media?.length) {
+      return;
+    }
 
-      if (data.autoplay) {
-        const currentState = mediaPlayerStore.getSnapshot();
-
-        // play first song from the media list
-        let mediaToPlay = this.media[0];
-
-        // if we are shuffling take a random index as the starting point
-        if (currentState.shuffling) {
-          mediaToPlay = this.media[Math.floor(Math.random() * this.media.length)];
-        }
-
-        this.currentMediaId = mediaToPlay.id;
-        mediaPlayerStore.setState((state) => ({
-          ...state,
-          currentTrack: mediaToPlay,
-        }));
-
-        // on autoplay respect the shuffle settings
-        this.shuffleMedia(currentState.shuffling);
+    const queue = data.media.reduce((acc: PlaybackQueueItem[], item: any) => {
+      if (item?.id && item?.nodeId) {
+        acc.push({ mediaId: item.id, nodeId: item.nodeId });
       }
+
+      return acc;
+    }, []);
+
+    if (!queue.length) {
+      return;
+    }
+
+    const session = await playbackService.replaceQueue(queue);
+
+    this.applyPlaybackSession(session);
+
+    if (data.autoplay && session.currentMedia) {
+      mediaPlayerStore.setState((state) => ({
+        ...state,
+        paused: false,
+        playbackTime: 0,
+      }));
     }
   }
 
   toggleShuffle() {
     const currentState = mediaPlayerStore.getSnapshot();
 
-    const nextValue = !currentState.shuffling;
-
-    this.shuffleMedia(nextValue);
-
-    mediaPlayerStore.setState((state) => ({
-      ...state,
-      shuffling: !currentState.shuffling,
-    }));
-
-    this.updatePlaybackLocalStorage();
-  }
-
-  shuffleMedia(shuffle: boolean) {
-    if (shuffle && this.media.length) {
-      const currentMediaIndex = this.media.findIndex((m) => m.id === this.currentMediaId);
-
-      const media = [...this.media];
-
-      const currentMedia = media.splice(currentMediaIndex, 1);
-
-      // @ts-ignore
-      this.shuffledMedia = [currentMedia[0], ...shuffleArray(media)];
-    } else {
-      this.shuffledMedia = [];
-    }
+    void playbackService
+      .submitCommand('set_shuffle', {
+        enabled: !currentState.shuffling,
+      })
+      .then((session) => {
+        this.applyPlaybackSession(session);
+      });
   }
 
   updatePlaybackLocalStorage() {
@@ -270,8 +238,7 @@ class _playbackManager {
 
   readFromLocalStorage() {
     const playbackValue = JSON.parse(
-      localStorage.getItem(localStoragePlaybackStateKey) ||
-        '{"shuffling":false, "repeatMode": "none"}'
+      localStorage.getItem(localStoragePlaybackStateKey) || PLAYBACK_DEFAULTS
     );
 
     const mutedValue = localStorage.getItem(localStorageVolumeMutedKey) || MUTED_DEFAULT;
@@ -293,31 +260,18 @@ class _playbackManager {
     const currentState = mediaPlayerStore.getSnapshot();
 
     if (currentState.repeatMode === 'one') {
-      return mediaPlayerStore.setState((state) => ({
+      mediaPlayerStore.setState((state) => ({
         ...state,
         playbackTime: 0,
+        paused: false,
       }));
+
+      return;
     }
 
-    const targetList = this.shuffledMedia.length ? this.shuffledMedia : this.media;
-
-    const currentMediaIndex = targetList.findIndex((m) => m.id === this.currentMediaId);
-
-    const isLastSong = currentMediaIndex === targetList.length - 1;
-
-    if (isLastSong) {
-      // no repeat so stop playback
-      if (currentState.repeatMode !== 'all') {
-        return mediaPlayerStore.setState((state) => ({
-          ...state,
-          playbackTime: 0,
-          paused: true,
-        }));
-      }
-    }
-
-    // no special scenario just play next song
-    this.handleNext();
+    void playbackService.submitCommand('next').then((session) => {
+      this.applyPlaybackSession(session);
+    });
   }
 
   handleVolumeChange(event: { volume?: number; finalChange?: boolean }) {

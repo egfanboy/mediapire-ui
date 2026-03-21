@@ -7,8 +7,6 @@ import {
   actionType,
   GenericConfirmationModal,
 } from '../../../components/generic-confirmation-modal/generic-confirmation-modal';
-import playbackManager from '../../../components/media-player/playback-manager/playback-manager';
-import { mediaPlayerStore } from '../../../components/media-player/state-machine/media-player-store';
 import { MediaTable, TableSelectionAction } from '../../../components/media-table/media-table';
 import { TextSearch } from '../../../components/text-search/text-search';
 import mediaPlayerEvents, {
@@ -43,8 +41,6 @@ export function MediaLibrary() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    playbackManager.init();
-
     const fetchMedia = async () => {
       initialFetch.current = true;
       await fetchLibrary();
@@ -56,10 +52,7 @@ export function MediaLibrary() {
     }
 
     return () => {
-      playbackManager.destroy();
-      // TODO: rethink how these stores work and reset
-      mediaStore.setState((s) => ({ ...s, media: [] }));
-      mediaPlayerStore.reset();
+      mediaStore.setState((s) => ({ ...s, media: [], playbackSource: null }));
     };
   }, []);
 
@@ -77,6 +70,18 @@ export function MediaLibrary() {
 
   useEffect(() => {
     filterLibrary();
+  }, [filter]);
+
+  useEffect(() => {
+    mediaStore.setState((state) => ({
+      ...state,
+      playbackSource: state.playbackSource
+        ? {
+            ...state.playbackSource,
+            filter,
+          }
+        : state.playbackSource,
+    }));
   }, [filter]);
 
   const handleSelectAll = () => {
@@ -112,12 +117,21 @@ export function MediaLibrary() {
   const fetchLibrary = async () => {
     try {
       const mediaType = location.state?.mediaType;
+      const sortBy = DEFAULT_SORTING_BY_TYPE[mediaType];
       const response = await mediaService.getMedia({
         mediaType,
-        sortBy: DEFAULT_SORTING_BY_TYPE[mediaType],
+        sortBy,
       });
 
-      mediaStore.setState((s) => ({ ...s, media: response.results }));
+      mediaStore.setState((s) => ({
+        ...s,
+        media: response.results,
+        playbackSource: {
+          mediaType,
+          filter,
+          sortBy,
+        },
+      }));
     } catch (err: any) {
       navigate(routeError);
     }

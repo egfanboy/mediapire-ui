@@ -23,7 +23,15 @@ import {
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 
+import playbackManager from './components/media-player/playback-manager/playback-manager';
 import { EditPage } from './pages/edit/edit';
+import { playbackService } from './services/playback/playback';
+import {
+  setPlaybackSessionError,
+  setPlaybackSessionLoading,
+  setPlaybackSessionState,
+} from './services/playback/playback-session-store';
+import { playbackWebsocketService } from './services/playback/playback-websocket';
 import styles from './App.module.css';
 
 const NO_NAV_ROUTES = [routeSetup];
@@ -48,20 +56,59 @@ export function App() {
   };
 
   useEffect(() => {
+    const syncPlaybackSession = () => {
+      setPlaybackSessionLoading();
+
+      return playbackService
+        .getSession()
+        .then((session) => {
+          setPlaybackSessionState(session);
+        })
+        .catch(() => {
+          setPlaybackSessionState(null);
+        });
+    };
+
+    playbackManager.init();
+
     const config = mediapireService.getManagerConfig();
 
     if (config === null) {
       navigate(routeSetup);
-    } else {
-      // We have the manager config
+      setInit(false);
 
-      // if no route, just reroute to the library
-      if (location.pathname === '/') {
-        navigate(libraryBasePath);
-      }
+      return () => {
+        playbackManager.destroy();
+      };
     }
 
+    // if no route, just reroute to the library
+    if (location.pathname === '/') {
+      navigate(libraryBasePath);
+    }
+
+    void syncPlaybackSession();
+
+    const disconnectPlaybackWebsocket = playbackWebsocketService.connect({
+      onSessionUpdated: (session) => {
+        if (!session) {
+          setPlaybackSessionError();
+          return;
+        }
+
+        setPlaybackSessionState(session);
+      },
+      onReconnect: () => {
+        void syncPlaybackSession();
+      },
+    });
+
     setInit(false);
+
+    return () => {
+      disconnectPlaybackWebsocket();
+      playbackManager.destroy();
+    };
   }, []);
 
   return (

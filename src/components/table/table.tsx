@@ -65,8 +65,9 @@ export const Table = <T extends withId>({
           })}
 
           {/* Adds a padding element if the table supports bulk actions */}
-          {ba.length > 0 ||
-            (itemActions && <MTable.Td>{item.actionCell ? item.actionCell : null}</MTable.Td>)}
+          {(ba.length > 0 || itemActions) && (
+            <MTable.Td>{item.actionCell ? item.actionCell : null}</MTable.Td>
+          )}
         </MTable.Tr>
       );
     },

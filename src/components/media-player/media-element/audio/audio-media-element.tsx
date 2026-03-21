@@ -16,6 +16,25 @@ export const AudioControlElement = () => {
   const currentTrack = useMediaStore((state) => state.currentTrack);
   const paused = useMediaStore((state) => state.paused);
 
+  const syncPausedState = useCallback((nextPaused: boolean) => {
+    mediaPlayerStore.setState((state) => ({
+      ...state,
+      paused: nextPaused,
+    }));
+  }, []);
+
+  const attemptPlay = useCallback(async () => {
+    if (!audioRef.current?.src) {
+      return;
+    }
+
+    try {
+      await audioRef.current.play();
+    } catch {
+      syncPausedState(true);
+    }
+  }, [syncPausedState]);
+
   const handleSongTimeUpdate = useCallback(() => {
     if (audioRef.current) {
       mediaPlayerStore.setState((state) => ({
@@ -35,14 +54,14 @@ export const AudioControlElement = () => {
     // only control the audio element if it has a src (it has been loaded)
     if (audioRef.current?.src) {
       if (audioRef.current.paused && !paused) {
-        audioRef.current.play();
+        void attemptPlay();
       }
 
       if (!audioRef.current.paused && paused) {
         audioRef.current.pause();
       }
     }
-  }, [paused]);
+  }, [attemptPlay, paused]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -50,8 +69,12 @@ export const AudioControlElement = () => {
       if (Math.abs(playbackTime - audioRef.current.currentTime) > 0.5) {
         audioRef.current.currentTime = playbackTime;
       }
+
+      if (playbackTime === 0 && !paused && audioRef.current.paused && audioRef.current.src) {
+        void attemptPlay();
+      }
     }
-  }, [playbackTime]);
+  }, [attemptPlay, paused, playbackTime]);
 
   const handleSongEnd = useCallback(() => {
     if (audioRef.current) {
@@ -61,17 +84,31 @@ export const AudioControlElement = () => {
     }
   }, [audioRef.current]);
 
+  const handleNativePlay = useCallback(() => {
+    syncPausedState(false);
+  }, [syncPausedState]);
+
+  const handleNativePause = useCallback(() => {
+    if (audioRef.current && !audioRef.current.ended) {
+      syncPausedState(true);
+    }
+  }, [syncPausedState]);
+
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.addEventListener('timeupdate', handleSongTimeUpdate);
       audioRef.current.addEventListener('ended', handleSongEnd);
+      audioRef.current.addEventListener('play', handleNativePlay);
+      audioRef.current.addEventListener('pause', handleNativePause);
       audioRef.current.controls = false;
     }
     return () => {
       audioRef.current?.removeEventListener('timeupdate', handleSongTimeUpdate);
       audioRef.current?.removeEventListener('ended', handleSongEnd);
+      audioRef.current?.removeEventListener('play', handleNativePlay);
+      audioRef.current?.removeEventListener('pause', handleNativePause);
     };
-  }, [audioRef.current]);
+  }, [audioRef.current, handleNativePause, handleNativePlay]);
 
   useEffect(() => {
     if (currentTrack?.id) {
@@ -85,14 +122,14 @@ export const AudioControlElement = () => {
           const audioBytes = await mediaService.streamMedia(currentTrack.id, currentTrack.nodeId);
 
           audioRef.current.src = URL.createObjectURL(audioBytes);
-          audioRef.current.play();
           audioRef.current.currentTime = 0;
+          void attemptPlay();
         }
       };
 
       load();
     }
-  }, [currentTrack?.id]);
+  }, [attemptPlay, currentTrack?.id]);
 
   return <audio ref={audioRef}></audio>;
 };
