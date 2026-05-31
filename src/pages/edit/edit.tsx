@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useNavigateMediaLibrary } from '@/hooks/navigation/use-navigate-media-library';
 import { mediaService } from '@/services/media/media-service';
-import { EditItemForm } from './form';
+import { SingleItemEditForm } from './form/single-item-edit-form';
 
 export const EditPage = () => {
   const [searchParams] = useSearchParams();
   const ids = searchParams.get('ids');
-  const [item, setItem] = useState<MediaItemWithNodeId | null>(null);
+  const [items, setItems] = useState<MediaItemWithNodeId[] | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -32,18 +32,19 @@ export const EditPage = () => {
 
       const mediaIds = ids?.split(',');
 
-      mediaService.getMediaByIds(mediaIds).then((items) => setItem(items[0]));
+      mediaService.getMediaByIds(mediaIds).then((items) => setItems(items));
     } else {
       navigateToLibrary(getMediaType());
     }
   }, [ids]);
 
-  if (!item) return <div>Loading...</div>;
+  if (!items) return <div>Loading...</div>;
 
-  return (
-    <div>
-      <h1>{item.name}</h1>
-      <EditItemForm item={item} />
-    </div>
-  );
+  if (items.length === 1)
+    return (
+      <div>
+        <h1>{items[0].name}</h1>
+        <SingleItemEditForm item={items[0]} />
+      </div>
+    );
 };
