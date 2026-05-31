@@ -24,7 +24,7 @@ interface MediaService {
   streamMedia(mediaId: string, nodeId: string): Promise<any>;
   streamMediaStatic(mediaId: string, nodeId: string): string;
   getMediaArtStatic(mediaId: string, nodeId: string): string;
-  updateMedia(changes: UpdateMediaItem[]): Promise<any>;
+  updateMedia(changes: UpdateMediaItem[], files?: { fieldName: string; file: any }[]): Promise<any>;
 }
 
 const baseMediaUrl = '/api/v1/media';
@@ -78,8 +78,12 @@ const streamMediaStatic = (mediaId: string, nodeId: string): string =>
 const getMediaArtStatic = (mediaId: string, nodeId: string) =>
   api.buildUrl(`${baseMediaUrl}/${mediaId}/art?nodeId=${nodeId}`);
 
-const updateMedia = (changes: UpdateMediaItem[]): Promise<any> => {
+const updateMedia = (changes: UpdateMediaItem[], files = []): Promise<any> => {
   const body = new FormData();
+
+  if (files.length) {
+    files.forEach(({ fieldName, file }) => body.append(fieldName, file));
+  }
 
   body.append('data', JSON.stringify({ action: 'update', changes }));
   return api.post('/api/v1/changesets', { body }).then((r) => r.json());

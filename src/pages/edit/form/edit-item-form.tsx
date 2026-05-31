@@ -1,7 +1,15 @@
 import { useMemo, useState } from 'react';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Flex, Group, MantineComponent, NumberInput, TextInput } from '@mantine/core';
+import {
+  Button,
+  FileInput,
+  Flex,
+  Group,
+  MantineComponent,
+  NumberInput,
+  TextInput,
+} from '@mantine/core';
 import { isInRange, isNotEmpty, useForm, UseFormInput } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { usePollCompletion } from '@/hooks/use-poll-completion/use-poll-completion';
@@ -9,6 +17,7 @@ import { changesetService } from '@/services/changeset/changeset-service';
 import { mediaService } from '@/services/media/media-service';
 
 const NUMBER_FIELDS = ['trackOf', 'trackIndex'];
+const FILE_FIELDS = ['art'];
 
 interface EditItemFormProps {
   item: MediaItemWithNodeId;
@@ -63,9 +72,26 @@ export const EditItemForm = ({ item }: EditItemFormProps) => {
   const handleSubmitForm = async (values: { [key: string]: any }) => {
     const { id: mediaId, nodeId } = item;
 
+    const files = Object.keys(values).reduce<{ fieldName: string; file: any }[]>(
+      (acc, fieldName) => {
+        if (FILE_FIELDS.includes(fieldName)) {
+          const value = values[fieldName];
+          if (value) {
+            acc = [...acc, { fieldName, file: value }];
+          }
+        }
+
+        return acc;
+      },
+      []
+    );
+
     const change = Object.entries(values).reduce<{ [key: string]: any }>((acc, [key, value]) => {
       if (NUMBER_FIELDS.includes(key)) {
         acc[key] = +value;
+      } else if (FILE_FIELDS.includes(key)) {
+        // Save images as the name of the field as that is what is being sent as part of the FormData
+        acc[key] = key;
       } else {
         acc[key] = value;
       }
@@ -82,7 +108,7 @@ export const EditItemForm = ({ item }: EditItemFormProps) => {
     ];
 
     try {
-      const changeset = await mediaService.updateMedia(changes);
+      const changeset = await mediaService.updateMedia(changes, files);
       setChangesetId(changeset.id);
 
       form.resetTouched();
@@ -144,6 +170,10 @@ const getFormField = (fieldName: string) => {
     fieldComponent = NumberInput;
   }
 
+  if (FILE_FIELDS.includes(fieldName)) {
+    fieldComponent = FileInput;
+  }
+
   return fieldComponent;
 };
 
@@ -156,6 +186,7 @@ const getFormConfig = (item: MediaItemWithNodeId) => {
       mode: 'uncontrolled',
       validateInputOnChange: true,
       initialValues: {
+        art: null,
         name: getValueFromItem('name', item),
         album: getValueFromItem('album', item),
         artist: getValueFromItem('artist', item),
@@ -165,6 +196,14 @@ const getFormConfig = (item: MediaItemWithNodeId) => {
 
       enhanceGetInputProps({ field: fieldName }) {
         switch (fieldName) {
+          case 'art': {
+            return {
+              label: 'Album Art',
+              clearable: true,
+              accept: 'image/jpeg,image/jpg',
+              placeholder: 'Upload Album Art',
+            };
+          }
           case 'name':
             return {
               label: 'Song Name',
