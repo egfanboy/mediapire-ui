@@ -89,7 +89,7 @@ export const EditItemForm = ({ item }: EditItemFormProps) => {
     const change = Object.entries(values).reduce<{ [key: string]: any }>((acc, [key, value]) => {
       if (NUMBER_FIELDS.includes(key)) {
         acc[key] = +value;
-      } else if (FILE_FIELDS.includes(key)) {
+      } else if (FILE_FIELDS.includes(key) && value) {
         // Save images as the name of the field as that is what is being sent as part of the FormData
         acc[key] = key;
       } else {
