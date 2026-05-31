@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { IconEdit } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { ActionIcon, Flex, Group, Table as MantineTable, Pagination } from '@mantine/core';
@@ -52,6 +52,14 @@ export function MediaTable({ pagination, items, filteredItems, ...props }: Table
     }
   }, [containerRef.current]);
 
+  const navigateToEdit = useCallback(
+    (ids: string[]) =>
+      navigate(
+        `${routeEdit.replace(LIBRARY_MEDIA_ID_PARAM, props.mediaType)}?ids=${ids.join(',')}`
+      ),
+    [props.mediaType, navigate]
+  );
+
   return (
     <Flex direction="column" gap="md" ref={containerRef}>
       <MantineTable.ScrollContainer minWidth={500} maxHeight={containerHeight}>
@@ -74,11 +82,7 @@ export function MediaTable({ pagination, items, filteredItems, ...props }: Table
                 variant="outline"
                 color=""
                 size="sm"
-                onClick={() =>
-                  navigate(
-                    `${routeEdit.replace(LIBRARY_MEDIA_ID_PARAM, props.mediaType)}?ids=${f.id}`
-                  )
-                }
+                onClick={() => navigateToEdit([f.id])}
               >
                 <IconEdit></IconEdit>
               </ActionIcon>
@@ -101,6 +105,10 @@ export function MediaTable({ pagination, items, filteredItems, ...props }: Table
             {
               label: 'Play Selection',
               handler: () => props.onSelectionAction(TableSelectionAction.Play),
+            },
+            {
+              label: 'Edit',
+              handler: () => navigateToEdit(props.selectedItems),
             },
           ]}
         ></Table>

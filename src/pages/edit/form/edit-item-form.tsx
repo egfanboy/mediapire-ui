@@ -1,130 +1,18 @@
-import { useMemo, useState } from 'react';
-import { IconAlertCircle } from '@tabler/icons-react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Button,
-  FileInput,
-  Flex,
-  Group,
-  MantineComponent,
-  NumberInput,
-  TextInput,
-} from '@mantine/core';
-import { isInRange, isNotEmpty, useForm, UseFormInput } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
-import { usePollCompletion } from '@/hooks/use-poll-completion/use-poll-completion';
-import { changesetService } from '@/services/changeset/changeset-service';
-import { mediaService } from '@/services/media/media-service';
-
-const NUMBER_FIELDS = ['trackOf', 'trackIndex'];
-const FILE_FIELDS = ['art'];
+import { FileInput, Flex, MantineComponent, NumberInput, TextInput } from '@mantine/core';
+import { UseFormReturnType } from '@mantine/form';
+import { FILE_FIELDS, NUMBER_FIELDS } from './single-item-edit-form';
 
 interface EditItemFormProps {
-  item: MediaItemWithNodeId;
+  form: UseFormReturnType<{
+    [key: string]: any;
+  }>;
+  dependentsConfig: { [key: string]: string[] };
+  onSubmit: ({ values }: { [key: string]: any }) => Promise<any>;
 }
 
-export const EditItemForm = ({ item }: EditItemFormProps) => {
-  const formConfig = useMemo(() => getFormConfig(item), [item]);
-  const [changesetId, setChangesetId] = useState<null | string>(null);
-  const navigate = useNavigate();
-
-  usePollCompletion({
-    queryCompletion: async () => {
-      if (!changesetId) return { complete: false };
-      try {
-        const changeset = await changesetService.getChangeset(changesetId);
-
-        if (changeset.status === 'complete') return { complete: true, success: true };
-        if (changeset.status === 'failed') return { complete: true };
-
-        return { complete: false };
-      } catch (e) {
-        return { complete: true, success: false };
-      }
-    },
-    onComplete(success) {
-      if (success) {
-        notifications.show({
-          title: 'Updated',
-          message: 'Successfully updated item',
-          autoClose: 2000,
-        });
-      } else {
-        notifications.show({
-          title: 'Failed to edit',
-          message: 'An error occured when trying to edit this item.',
-          autoClose: 5000,
-          color: 'red',
-          icon: <IconAlertCircle></IconAlertCircle>,
-        });
-      }
-
-      setChangesetId(null);
-    },
-    enabled: !!changesetId,
-  });
-
-  if (!formConfig) return <div>Cannot edit item with extenstion {item.extension}</div>;
-  const form = useForm(formConfig);
-
-  const dependencyMappingForMediaType = useMemo(() => getFormDependentsConfig(item), [item]);
-
-  const handleSubmitForm = async (values: { [key: string]: any }) => {
-    const { id: mediaId, nodeId } = item;
-
-    const files = Object.keys(values).reduce<{ fieldName: string; file: any }[]>(
-      (acc, fieldName) => {
-        if (FILE_FIELDS.includes(fieldName)) {
-          const value = values[fieldName];
-          if (value) {
-            acc = [...acc, { fieldName, file: value }];
-          }
-        }
-
-        return acc;
-      },
-      []
-    );
-
-    const change = Object.entries(values).reduce<{ [key: string]: any }>((acc, [key, value]) => {
-      if (NUMBER_FIELDS.includes(key)) {
-        acc[key] = +value;
-      } else if (FILE_FIELDS.includes(key)) {
-        // Save images as the name of the field as that is what is being sent as part of the FormData
-        acc[key] = key;
-      } else {
-        acc[key] = value;
-      }
-
-      return acc;
-    }, {});
-
-    const changes = [
-      {
-        mediaId,
-        nodeId,
-        change,
-      },
-    ];
-
-    try {
-      const changeset = await mediaService.updateMedia(changes, files);
-      setChangesetId(changeset.id);
-
-      form.resetTouched();
-    } catch (e) {
-      notifications.show({
-        title: 'Failed to edit',
-        message: 'An error occured when trying to edit this item.',
-        autoClose: 5000,
-        color: 'red',
-        icon: <IconAlertCircle></IconAlertCircle>,
-      });
-    }
-  };
-
+export const EditItemForm = ({ form, dependentsConfig, onSubmit }: EditItemFormProps) => {
   return (
-    <form onSubmit={form.onSubmit(handleSubmitForm)}>
+    <form>
       <Flex direction="column">
         {Object.keys(form.getValues()).map((fieldName) => {
           const C = getFormField(fieldName);
@@ -138,26 +26,13 @@ export const EditItemForm = ({ item }: EditItemFormProps) => {
               onChange={(e: any) => {
                 fieldBaseProps.onChange(e);
 
-                for (const dep of dependencyMappingForMediaType[fieldName] || []) {
+                for (const dep of dependentsConfig[fieldName] || []) {
                   form.validateField(dep);
                 }
               }}
             />
           );
         })}
-        <Group>
-          <Button mt="md" variant="subtle" onClick={() => navigate(-1)}>
-            Cancel
-          </Button>
-          <Button
-            mt="md"
-            disabled={!form.isValid() || !form.isTouched()}
-            loading={!!changesetId}
-            type="submit"
-          >
-            Save
-          </Button>
-        </Group>
       </Flex>
     </form>
   );
@@ -175,108 +50,4 @@ const getFormField = (fieldName: string) => {
   }
 
   return fieldComponent;
-};
-
-const getFormConfig = (item: MediaItemWithNodeId) => {
-  let config: UseFormInput<{ [key: string]: any }> | null = null;
-
-  if (item.extension === 'mp3') {
-    // TODO: add album art and start/end time
-    config = {
-      mode: 'uncontrolled',
-      validateInputOnChange: true,
-      initialValues: {
-        art: null,
-        name: getValueFromItem('name', item),
-        album: getValueFromItem('album', item),
-        artist: getValueFromItem('artist', item),
-        trackIndex: getValueFromItem('trackIndex', item) || '',
-        trackOf: getValueFromItem('trackOf', item) || '',
-      },
-
-      enhanceGetInputProps({ field: fieldName }) {
-        switch (fieldName) {
-          case 'art': {
-            return {
-              label: 'Album Art',
-              clearable: true,
-              accept: 'image/jpeg,image/jpg',
-              placeholder: 'Upload Album Art',
-            };
-          }
-          case 'name':
-            return {
-              label: 'Song Name',
-              withAsterisk: true,
-            };
-          case 'album':
-            return {
-              label: 'Album',
-              withAsterisk: true,
-            };
-          case 'artist':
-            return {
-              label: 'Artist',
-              withAsterisk: true,
-            };
-          case 'trackIndex':
-            return {
-              label: 'Track Number',
-            };
-          case 'trackOf':
-            return {
-              label: 'Total Tracks',
-            };
-          default:
-            return {};
-        }
-      },
-
-      validate: {
-        name: isNotEmpty('Name is required'),
-        album: isNotEmpty('Album is required'),
-        artist: isNotEmpty('Artist is required'),
-        trackIndex: (value, values) => {
-          // Can be left blank
-          if (!value && value !== 0) {
-            return null;
-          }
-
-          const hasATrackNumber = !!values.trackOf;
-
-          if (hasATrackNumber) {
-            return isInRange(
-              { min: 1, max: values.trackOf },
-              `Must be between 1 and ${values.trackOf}`
-            )(value);
-          } else if (!!value) {
-            return `Must provide total tracks before setting track number`;
-          }
-        },
-        trackOf: (value) => {
-          if (!value && value !== 0) {
-            return null;
-          }
-
-          return value <= 0 ? 'Must be greater than 0' : null;
-        },
-      },
-    };
-  }
-
-  return config;
-};
-
-function getValueFromItem<T>(fieldName: string, item: MediaItemWithNodeId): T {
-  return (item as { [key: string]: any })[fieldName] ?? item.metadata[fieldName] ?? '';
-}
-
-const getFormDependentsConfig = (item: MediaItemWithNodeId): { [key: string]: string[] } => {
-  if (item.extension === 'mp3') {
-    return {
-      trackOf: ['trackIndex'],
-    };
-  }
-
-  return {};
 };
