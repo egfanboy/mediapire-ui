@@ -15,9 +15,9 @@ export const getItemPayload = ({ values, mediaId, nodeId }: getItemPayloadArgs):
   const files = Object.keys(values).reduce<{ fieldName: string; file: File }[]>(
     (acc, fieldName) => {
       if (FILE_FIELDS.includes(fieldName)) {
-        const value = values[fieldName];
+        const value = <File | null>values[fieldName];
         if (value) {
-          acc = [...acc, { fieldName, file: value }];
+          acc = [...acc, { fieldName: `${fieldName}-${value.name}`, file: value }];
         }
       }
 
@@ -31,7 +31,7 @@ export const getItemPayload = ({ values, mediaId, nodeId }: getItemPayloadArgs):
       acc[key] = +value;
     } else if (FILE_FIELDS.includes(key) && value) {
       // Save images as the name of the field as that is what is being sent as part of the FormData
-      acc[key] = key;
+      acc[key] = `${key}-${value.name}`;
     } else {
       acc[key] = value;
     }
