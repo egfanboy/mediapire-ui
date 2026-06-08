@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useNavigateMediaLibrary } from '@/hooks/navigation/use-navigate-media-library';
 import { mediaService } from '@/services/media/media-service';
+import { MultiItemEditForm } from './form/multi-item-edit-form';
 import { SingleItemEditForm } from './form/single-item-edit-form';
 
 export const EditPage = () => {
@@ -47,4 +48,6 @@ export const EditPage = () => {
         <SingleItemEditForm item={items[0]} />
       </div>
     );
+
+  return <MultiItemEditForm items={items} />;
 };

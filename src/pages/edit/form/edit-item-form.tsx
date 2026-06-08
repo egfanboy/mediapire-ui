@@ -7,10 +7,9 @@ interface EditItemFormProps {
     [key: string]: any;
   }>;
   dependentsConfig: { [key: string]: string[] };
-  onSubmit: ({ values }: { [key: string]: any }) => Promise<any>;
 }
 
-export const EditItemForm = ({ form, dependentsConfig, onSubmit }: EditItemFormProps) => {
+export const EditItemForm = ({ form, dependentsConfig }: EditItemFormProps) => {
   return (
     <form>
       <Flex direction="column">
