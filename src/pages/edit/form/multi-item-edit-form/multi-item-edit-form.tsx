@@ -1,15 +1,16 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { IconAlertCircle } from '@tabler/icons-react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { IconAlertCircle, IconPencil } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Flex, Group } from '@mantine/core';
+import { Button, Flex, Group, Modal } from '@mantine/core';
 import { useForm, type UseFormReturnType } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { usePollCompletion } from '@/hooks/use-poll-completion/use-poll-completion';
 import { changesetService } from '@/services/changeset/changeset-service';
 import { mediaService } from '@/services/media/media-service';
-import { EditItemForm } from './edit-item-form';
-import { getFormConfigForItem } from './get-form-config-for-item';
-import { getItemPayload } from './get-item-payload';
+import { EditItemForm } from '../edit-item-form';
+import { getFormConfigForItem } from '../get-form-config-for-item';
+import { getItemPayload } from '../get-item-payload';
+import { BulkEditForm } from './bulk-edit-form';
 
 interface MultiEditItemFormProps {
   items: MediaItemWithNodeId[];
@@ -22,6 +23,7 @@ export const MultiItemEditForm = ({ items }: MultiEditItemFormProps) => {
   const [registeredForms, setRegisteredForms] = useState<RegisteredForms>({});
   const [formRevision, setFormRevision] = useState(0);
   const [changesetId, setChangesetId] = useState<null | string>(null);
+  const [bulkEditing, setBulkEditing] = useState(false);
 
   const navigate = useNavigate();
   const itemFormConfigs = useMemo(
@@ -44,6 +46,7 @@ export const MultiItemEditForm = ({ items }: MultiEditItemFormProps) => {
   }, []);
 
   const unregisterForm = useCallback((nodeId: string) => {
+    console.log('unregistering');
     setRegisteredForms((currentForms) => {
       if (!currentForms[nodeId]) {
         return currentForms;
@@ -148,6 +151,27 @@ export const MultiItemEditForm = ({ items }: MultiEditItemFormProps) => {
   const allFormsRegistered = forms.length === itemFormConfigs.length;
   const allFormsValid = allFormsRegistered && forms.every((form) => form.isValid());
   const anyFormTouched = forms.some((form) => form.isTouched());
+  const canBulkEdit = useMemo(
+    () => items.every((item) => item.extension === items[0].extension),
+    []
+  );
+
+  const handleOnBulkEdit = (values: { [key: string]: any }) => {
+    items.forEach((item) => {
+      const form = registeredForms[item.id];
+
+      console.log(form);
+
+      if (!form) return;
+
+      console.log(form, values);
+
+      // Use setFieldValue as opposed to form.setValues as this behaves like user interaction
+      Object.entries(values).forEach(([key, val]) => form.setFieldValue(key, val));
+
+      // form.setTouched()
+    });
+  };
 
   if (hasInvalidItemForms) {
     return <div>Cannot edit some items as there is no form for their extension</div>;
@@ -155,7 +179,26 @@ export const MultiItemEditForm = ({ items }: MultiEditItemFormProps) => {
 
   return (
     <Flex direction="column">
+      <Modal opened={bulkEditing} onClose={() => setBulkEditing(false)} withCloseButton={false}>
+        <BulkEditForm
+          itemType="mp3"
+          onEdit={handleOnBulkEdit}
+          exitBulkEdit={() => setBulkEditing(false)}
+        />
+      </Modal>
       <Flex direction="column" style={{ height: '80vh', overflow: 'scroll' }}>
+        {canBulkEdit && (
+          <Group ml="auto">
+            <Button
+              mt="md"
+              variant="subtle"
+              onClick={() => setBulkEditing(true)}
+              leftSection={<IconPencil size={14} />}
+            >
+              Bulk Edit
+            </Button>
+          </Group>
+        )}
         {itemFormConfigs.map(({ item, formConfig }) => (
           <Fragment key={item.id}>
             <h1>{item.name}</h1>
