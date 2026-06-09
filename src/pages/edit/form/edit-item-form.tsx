@@ -6,10 +6,10 @@ interface EditItemFormProps {
   form: UseFormReturnType<{
     [key: string]: any;
   }>;
-  dependentsConfig: { [key: string]: string[] };
+  dependentsConfig?: { [key: string]: string[] };
 }
 
-export const EditItemForm = ({ form, dependentsConfig }: EditItemFormProps) => {
+export const EditItemForm = ({ form, dependentsConfig = {} }: EditItemFormProps) => {
   return (
     <form>
       <Flex direction="column">
