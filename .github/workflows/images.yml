@@ -21,7 +21,7 @@ permissions:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build-mp-host:
+  build-mp-ui:
     runs-on: ubuntu-latest
     steps:
       # Get the repositery's code
@@ -63,6 +63,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
+          file: ./docker/Dockerfile
           platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta_mediapire_ui.outputs.tags }}
